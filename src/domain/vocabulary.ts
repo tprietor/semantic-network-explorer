@@ -11,16 +11,14 @@ const PALETTE: Record<CategoryCode, string> = {
   LOC: "#8BCB2E", // verde lima del logo
   PRAC: "#DE6B9C", // rosa frambuesa
   RUL: "#6BC8CC", // turquesa del logo
-  KNOW: "#397DB8", // azul
-  ATT: "#E69745", // naranja
-  SKILL: "#287A62", // verde bosque
+  KAS: "#397DB8", // azul
   physical_INFRA: "#BC5653", // rojo terracota
   soft_INFRA: "#B99B30", // amarillo mostaza
   eco_INFRA: "#794A83", // morado ciruela
   INFRA: "#8E948F",
 };
 
-/** Los diez colores de la paleta, en orden; también colorean las comunidades. */
+/** Los ocho colores de la paleta, en orden; también colorean las comunidades. */
 export function categoryPalette(): string[] {
   return Object.entries(PALETTE)
     .filter(([code]) => code !== "INFRA")
@@ -33,9 +31,7 @@ export const CATEGORY_ORDER: CategoryCode[] = [
   "LOC",
   "PRAC",
   "RUL",
-  "KNOW",
-  "ATT",
-  "SKILL",
+  "KAS",
   "physical_INFRA",
   "soft_INFRA",
   "eco_INFRA",
@@ -54,9 +50,7 @@ export function categoryTint(code: string, theme: Theme): string {
 const CATEGORY_LABELS: Record<Lang, Record<CategoryCode, string>> = {
   es: {
     CHAR: "Actores",
-    KNOW: "Saberes",
-    ATT: "Actitudes y valores",
-    SKILL: "Habilidades",
+    KAS: "KAS",
     PRAC: "Prácticas",
     physical_INFRA: "Infraestructura física",
     soft_INFRA: "Infraestructura blanda",
@@ -67,9 +61,7 @@ const CATEGORY_LABELS: Record<Lang, Record<CategoryCode, string>> = {
   },
   en: {
     CHAR: "Actors",
-    KNOW: "Knowledge",
-    ATT: "Attitudes and values",
-    SKILL: "Skills",
+    KAS: "KAS",
     PRAC: "Practices",
     physical_INFRA: "Physical infrastructure",
     soft_INFRA: "Soft infrastructure",
@@ -84,9 +76,7 @@ const CATEGORY_LABELS: Record<Lang, Record<CategoryCode, string>> = {
 const CATEGORY_SHORT_LABELS: Record<Lang, Record<CategoryCode, string>> = {
   es: {
     CHAR: "Actores",
-    KNOW: "Saberes",
-    ATT: "Actitudes",
-    SKILL: "Habilidades",
+    KAS: "KAS",
     PRAC: "Prácticas",
     physical_INFRA: "Infr. física",
     soft_INFRA: "Infr. blanda",
@@ -97,9 +87,7 @@ const CATEGORY_SHORT_LABELS: Record<Lang, Record<CategoryCode, string>> = {
   },
   en: {
     CHAR: "Actors",
-    KNOW: "Knowledge",
-    ATT: "Attitudes",
-    SKILL: "Skills",
+    KAS: "KAS",
     PRAC: "Practices",
     physical_INFRA: "Physical infra.",
     soft_INFRA: "Soft infra.",

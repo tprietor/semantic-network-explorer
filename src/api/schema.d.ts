@@ -193,6 +193,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/documents/{document_id}/translate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Translate Document */
+        post: operations["translate_document_documents__document_id__translate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/{document_id}/english": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get English Document */
+        get: operations["get_english_document_documents__document_id__english_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/documents/{document_id}/revert": {
         parameters: {
             query?: never;
@@ -258,6 +292,26 @@ export interface paths {
          * @description Analiza conjuntamente las menciones NER del documento, resuelve variantes canónicas y persiste la evidencia de cada decisión.
          */
         post: operations["fuzzy_matching_documents__document_id__fuzzy_matching_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/{document_id}/entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar menciones resueltas de un documento
+         * @description Devuelve las menciones guardadas por fuzzy matching, su contexto, canónico y método de coincidencia. Es de solo lectura y admite filtros.
+         */
+        get: operations["get_resolved_entities_documents__document_id__entities_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -698,10 +752,7 @@ export interface components {
         };
         /** Body_upload_documents_post */
         Body_upload_documents_post: {
-            /**
-             * File
-             * Format: binary
-             */
+            /** File */
             file: string;
             incubator_number: components["schemas"]["IncubatorNumber"];
             /** Year */
@@ -772,6 +823,8 @@ export interface components {
             converted_path?: string | null;
             /** Cleaned Path */
             cleaned_path?: string | null;
+            /** English Path */
+            english_path?: string | null;
             /** Ner Path */
             ner_path?: string | null;
             /** Images Path */
@@ -882,9 +935,9 @@ export interface components {
         ExplorerCompareRequest: {
             /**
              * Categories
-             * @description Categorías de nodos; null usa las diez activas y el legado presente
+             * @description Categorías de red; null usa las ocho activas y el legado presente. ATT, KNOW y SKILL se interpretan como KAS
              */
-            categories?: ("ATT" | "CHAR" | "INFRA" | "KNOW" | "LOC" | "PRAC" | "RUL" | "SKILL" | "eco_INFRA" | "physical_INFRA" | "soft_INFRA")[] | null;
+            categories?: ("ATT" | "CHAR" | "INFRA" | "KAS" | "KNOW" | "LOC" | "PRAC" | "RUL" | "SKILL" | "eco_INFRA" | "physical_INFRA" | "soft_INFRA")[] | null;
             /**
              * Link Mode
              * @description any: cualquier par entre las categorías; between: solo entre categorías distintas; within: solo dentro de la misma; pairs: los category_pairs dados
@@ -893,7 +946,7 @@ export interface components {
              */
             link_mode: "any" | "between" | "within" | "pairs";
             /** Category Pairs */
-            category_pairs?: ("ATT" | "CHAR" | "INFRA" | "KNOW" | "LOC" | "PRAC" | "RUL" | "SKILL" | "eco_INFRA" | "physical_INFRA" | "soft_INFRA")[][] | null;
+            category_pairs?: ("ATT" | "CHAR" | "INFRA" | "KAS" | "KNOW" | "LOC" | "PRAC" | "RUL" | "SKILL" | "eco_INFRA" | "physical_INFRA" | "soft_INFRA")[][] | null;
             /**
              * Minimum Node Document Count
              * @default 2
@@ -921,6 +974,11 @@ export interface components {
              * @description Entidades canónicas que se quitan antes de construir la red; las métricas del resto se calculan sin ellas
              */
             excluded_entity_ids?: string[] | null;
+            /**
+             * Excluded Entity Names
+             * @description Nombres canónicos completos a excluir en cualquier categoría, sin distinguir mayúsculas, tildes, puntuación ni variantes nominales de singular/plural. Por defecto usa la lista editorial del explorador; no busca por fragmentos. [] desactiva la exclusión por nombre. La lista enviada reemplaza los valores predeterminados
+             */
+            excluded_entity_names?: string[];
             /**
              * Incubator Number
              * @default all
@@ -1073,6 +1131,11 @@ export interface components {
             name: string;
             /** Category */
             category: string;
+            /**
+             * Source Category
+             * @description Categoría de la anotación original, antes de agrupar KAS
+             */
+            source_category?: string | null;
             /** Mention Text */
             mention_text: string | null;
         };
@@ -1147,6 +1210,8 @@ export interface components {
             top_n: number | null;
             /** Excluded Entity Ids */
             excluded_entity_ids?: string[] | null;
+            /** Excluded Entity Names */
+            excluded_entity_names?: string[];
         };
         /** ExplorerLeader */
         ExplorerLeader: {
@@ -1200,9 +1265,9 @@ export interface components {
         ExplorerNetworkRequest: {
             /**
              * Categories
-             * @description Categorías de nodos; null usa las diez activas y el legado presente
+             * @description Categorías de red; null usa las ocho activas y el legado presente. ATT, KNOW y SKILL se interpretan como KAS
              */
-            categories?: ("ATT" | "CHAR" | "INFRA" | "KNOW" | "LOC" | "PRAC" | "RUL" | "SKILL" | "eco_INFRA" | "physical_INFRA" | "soft_INFRA")[] | null;
+            categories?: ("ATT" | "CHAR" | "INFRA" | "KAS" | "KNOW" | "LOC" | "PRAC" | "RUL" | "SKILL" | "eco_INFRA" | "physical_INFRA" | "soft_INFRA")[] | null;
             /**
              * Link Mode
              * @description any: cualquier par entre las categorías; between: solo entre categorías distintas; within: solo dentro de la misma; pairs: los category_pairs dados
@@ -1211,7 +1276,7 @@ export interface components {
              */
             link_mode: "any" | "between" | "within" | "pairs";
             /** Category Pairs */
-            category_pairs?: ("ATT" | "CHAR" | "INFRA" | "KNOW" | "LOC" | "PRAC" | "RUL" | "SKILL" | "eco_INFRA" | "physical_INFRA" | "soft_INFRA")[][] | null;
+            category_pairs?: ("ATT" | "CHAR" | "INFRA" | "KAS" | "KNOW" | "LOC" | "PRAC" | "RUL" | "SKILL" | "eco_INFRA" | "physical_INFRA" | "soft_INFRA")[][] | null;
             /**
              * Minimum Node Document Count
              * @default 2
@@ -1239,6 +1304,11 @@ export interface components {
              * @description Entidades canónicas que se quitan antes de construir la red; las métricas del resto se calculan sin ellas
              */
             excluded_entity_ids?: string[] | null;
+            /**
+             * Excluded Entity Names
+             * @description Nombres canónicos completos a excluir en cualquier categoría, sin distinguir mayúsculas, tildes, puntuación ni variantes nominales de singular/plural. Por defecto usa la lista editorial del explorador; no busca por fragmentos. [] desactiva la exclusión por nombre. La lista enviada reemplaza los valores predeterminados
+             */
+            excluded_entity_names?: string[];
             /**
              * Incubator Number
              * @default all
@@ -1902,6 +1972,85 @@ export interface components {
              */
             include_isolates: boolean;
         };
+        /** ResolvedEntitiesResponse */
+        ResolvedEntitiesResponse: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Original Filename */
+            original_filename: string;
+            /** Status */
+            status: string;
+            /** Language */
+            language: string | null;
+            /** Productive Sector */
+            productive_sector: string | null;
+            /** Document Total */
+            document_total: number;
+            /** Category Counts */
+            category_counts: {
+                [key: string]: number;
+            };
+            /** Match Type Counts */
+            match_type_counts: {
+                [key: string]: number;
+            };
+            /** Applied Filters */
+            applied_filters: {
+                [key: string]: string | null;
+            };
+            /** Total */
+            total: number;
+            /** Skip */
+            skip: number;
+            /** Limit */
+            limit: number;
+            /** Entities */
+            entities: components["schemas"]["ResolvedEntityRead"][];
+        };
+        /** ResolvedEntityRead */
+        ResolvedEntityRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Text */
+            text: string;
+            /** Category */
+            category: string;
+            /** Start */
+            start: number | null;
+            /** End */
+            end: number | null;
+            /** Sentence Id */
+            sentence_id: string | null;
+            /** Context */
+            context: string | null;
+            /** Ambiguity */
+            ambiguity: string | null;
+            /**
+             * Canonical Id
+             * Format: uuid
+             */
+            canonical_id: string;
+            /** Canonical Name */
+            canonical_name: string;
+            /** Canonical Category */
+            canonical_category: string;
+            /** Match Type */
+            match_type: string | null;
+            /** Match Score */
+            match_score: number | null;
+            /** Resolution Version */
+            resolution_version: string | null;
+            /** Resolution Details */
+            resolution_details: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** SemanticNodeEdit */
         SemanticNodeEdit: {
             /** Title */
@@ -2041,6 +2190,30 @@ export interface components {
             /** Errors */
             errors: components["schemas"]["BatchProcessError"][];
         };
+        /** TranslationResponse */
+        TranslationResponse: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Source Language */
+            source_language: string;
+            /**
+             * Target Language
+             * @default en
+             */
+            target_language: string;
+            /**
+             * Status
+             * @default english
+             */
+            status: string;
+            /** Translated */
+            translated: boolean;
+            /** English Path */
+            english_path: string;
+        };
         /** TypedNetworkBuildRequest */
         TypedNetworkBuildRequest: {
             /**
@@ -2099,6 +2272,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -2505,6 +2682,68 @@ export interface operations {
             };
         };
     };
+    translate_document_documents__document_id__translate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranslationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_english_document_documents__document_id__english_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     revert_documents__document_id__revert_post: {
         parameters: {
             query?: never;
@@ -2605,6 +2844,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FuzzyMatchingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_resolved_entities_documents__document_id__entities_get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+                category?: string | null;
+                match_type?: string | null;
+                canonical_id?: string | null;
+                q?: string | null;
+            };
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolvedEntitiesResponse"];
                 };
             };
             /** @description Validation Error */

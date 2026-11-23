@@ -34,7 +34,7 @@ export interface Filters {
   documentTypeMode: DocumentTypeMode;
   /** Vacío = todos los documentos listos. */
   documentIds: string[];
-  /** Vacío = las diez categorías y el legado presente (decide el backend). */
+  /** Vacío = las ocho categorías de red y el legado presente. */
   categories: CategoryCode[];
   linkMode: LinkMode;
   categoryPairs: CategoryPair[];
@@ -84,9 +84,7 @@ const CATEGORIES: CategoryCode[] = [
   "LOC",
   "PRAC",
   "RUL",
-  "KNOW",
-  "ATT",
-  "SKILL",
+  "KAS",
   "physical_INFRA",
   "soft_INFRA",
   "eco_INFRA",
@@ -94,6 +92,11 @@ const CATEGORIES: CategoryCode[] = [
 ];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Los enlaces guardados con las categorías anteriores ahora seleccionan KAS. */
+function networkCategory(code: string): string {
+  return ["ATT", "KNOW", "SKILL"].includes(code) ? "KAS" : code;
+}
 
 function oneOf<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
   return value !== null && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
@@ -135,16 +138,20 @@ export function filtersToSearch(filters: Filters): string {
 /** Lee filtros desde la URL; cualquier valor inválido vuelve a su valor por defecto. */
 export function filtersFromSearch(search: string): Filters {
   const params = new URLSearchParams(search);
-  const categories = (params.get("cats") ?? "")
+  const categories = [...new Set((params.get("cats") ?? "")
     .split(",")
-    .filter((code): code is CategoryCode => (CATEGORIES as string[]).includes(code));
+    .map(networkCategory)
+    .filter((code): code is CategoryCode => (CATEGORIES as string[]).includes(code)))];
   const categoryPairs = (params.get("pairs") ?? "")
     .split(",")
-    .map((pair) => pair.split("~"))
+    .map((pair) => pair.split("~").map(networkCategory))
     .filter(
       (pair): pair is CategoryPair =>
         pair.length === 2 && pair.every((code) => (CATEGORIES as string[]).includes(code)),
-    );
+    )
+    .filter((pair, index, pairs) => pairs.findIndex(
+      (other) => [...other].sort().join("~") === [...pair].sort().join("~"),
+    ) === index);
   const incubator = Number.parseInt(params.get("inc") ?? "", 10);
   const minWeight = Number.parseFloat(params.get("minw") ?? "");
   const documentTypes = [...new Set(params.getAll("dtype").map((type) => type.trim()).filter(Boolean))].sort();

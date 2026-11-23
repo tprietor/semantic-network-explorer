@@ -13,9 +13,11 @@ repositorio solo filtra, dibuja y compara.
   subida entre períodos y regla más conectada), el líder de cada categoría, los
   cambios entre períodos y las relaciones más repetidas. Todo se deriva de la
   respuesta de la API (`src/domain/insights.ts`).
-- **Red**: entidades de las diez categorías enlazadas por coocurrencia en la misma
+- **Red**: entidades de ocho categorías enlazadas por coocurrencia en la misma
   oración. El tamaño del nodo corresponde a la métrica elegida y el grosor del link
   a su peso. Al pasar el cursor se ven los vecinos; al hacer clic, el detalle.
+  KAS agrupa conocimientos, actitudes y habilidades. La evidencia original se
+  conserva en el backend; las URLs antiguas se normalizan a KAS.
 - **Filtros para reducir ruido**, aplicados en este orden en el backend:
   1. alcance: período, incubadora, idioma y documentos;
   2. categorías y tipo de link (todos, solo entre categorías, solo dentro de

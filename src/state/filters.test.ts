@@ -12,6 +12,15 @@ import {
 } from "./filters";
 
 describe("URL serialization", () => {
+  it("migrates saved categories and pairs to one KAS selection", () => {
+    const filters = filtersFromSearch("?cats=ATT,KNOW,SKILL,CHAR&links=pairs&pairs=ATT~CHAR,CHAR~KNOW,SKILL~ATT");
+    expect(filters.categories).toEqual(["KAS", "CHAR"]);
+    expect(filters.categoryPairs).toEqual([["KAS", "CHAR"], ["KAS", "KAS"]]);
+    const request = toNetworkRequest(filters);
+    expect(request.categories).toEqual(["KAS", "CHAR"]);
+    expect(request.category_pairs).toEqual([["KAS", "CHAR"], ["KAS", "KAS"]]);
+    expect(filtersToSearch(filters)).not.toMatch(/ATT|KNOW|SKILL/);
+  });
   it("omits defaults so the base URL stays clean", () => {
     expect(filtersToSearch(DEFAULT_FILTERS)).toBe("");
   });

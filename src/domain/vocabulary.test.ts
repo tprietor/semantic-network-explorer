@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { categoryLabel, formatInt, formatMetric, metricLabel, periodShort } from "./vocabulary";
+import { CATEGORY_ORDER, categoryLabel, categoryPalette, formatInt, formatMetric, metricLabel, periodShort } from "./vocabulary";
 
 describe("vocabulary", () => {
+  it("offers one KAS category in both languages", () => {
+    expect(CATEGORY_ORDER.filter((code) => code !== "INFRA")).toHaveLength(8);
+    expect(CATEGORY_ORDER).toContain("KAS");
+    for (const old of ["ATT", "KNOW", "SKILL"]) expect(CATEGORY_ORDER).not.toContain(old);
+    expect(categoryPalette()).toHaveLength(8);
+    for (const lang of ["es", "en"] as const) {
+      expect(categoryLabel("KAS", lang)).toBe("KAS");
+      expect(categoryLabel("KAS", lang, true)).toBe("KAS");
+    }
+  });
   it("formats numbers with the separators of each language", () => {
     expect(formatInt(36873, "es")).toBe("36.873");
     expect(formatInt(36873, "en")).toBe("36,873");

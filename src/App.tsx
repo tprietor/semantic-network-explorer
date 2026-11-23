@@ -36,7 +36,7 @@ export default function App() {
   }, [lang, t]);
 
   const meta = useMeta(stableFilters.sector);
-  const availableCategories = meta.data?.categories.filter((category) => !category.legacy).length ?? 10;
+  const availableCategories = meta.data?.categories.filter((category) => !category.legacy).length ?? 8;
   const issues = filterIssues(stableFilters, availableCategories);
   const network = useNetwork(stableFilters, { enabled: issues.length === 0 });
   // Comparar exige al menos dos períodos con documentos.

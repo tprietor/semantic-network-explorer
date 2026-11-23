@@ -26,7 +26,7 @@ export const PRESETS: Preset[] = [
     label: "preset.practices",
     hint: "preset.practicesHint",
     description: "preset.practicesHelp",
-    patch: { categories: ["PRAC", "KNOW", "SKILL"], metric: "pagerank" },
+    patch: { categories: ["PRAC", "KAS"], metric: "pagerank" },
   },
   {
     id: "bridges",

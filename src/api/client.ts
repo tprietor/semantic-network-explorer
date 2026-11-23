@@ -16,7 +16,7 @@ export type CompareRequest = Schemas["ExplorerCompareRequest"];
 export type CompareResponse = Schemas["ExplorerCompareResponse"];
 export type EvidenceResponse = Schemas["ExplorerEvidenceResponse"];
 
-export type CategoryCode = NonNullable<NetworkRequest["categories"]>[number];
+export type CategoryCode = Exclude<NonNullable<NetworkRequest["categories"]>[number], "ATT" | "KNOW" | "SKILL">;
 export type LinkMode = NetworkRequest["link_mode"];
 export type EdgeWeighting = NetworkRequest["edge_weighting"];
 export type RankingMetric = NetworkRequest["ranking_metric"];
