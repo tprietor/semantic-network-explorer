@@ -60,7 +60,7 @@ function extent(values: number[]): [number, number] {
 
 /**
  * Posiciones iniciales: reutiliza las conocidas, ubica los nodos nuevos en el
- * promedio de sus vecinos conocidos y, si no tienen, sobre un círculo.
+ * promedio de sus vecinos de la red anterior y, si no tienen, sobre un círculo.
  */
 export function seedPositions(
   nodes: ExplorerNode[],
@@ -71,11 +71,14 @@ export function seedPositions(
   let reused = 0;
   for (const node of nodes) {
     const point = known.get(node.id);
-    if (point) {
+    if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
       positions.set(node.id, { ...point });
       reused += 1;
     }
   }
+  // Solo las posiciones anteriores sirven de ancla. Encadenar las que acabamos
+  // de sembrar concentra una red conectada entera alrededor de su primer nodo.
+  const anchorsById = new Map(positions);
 
   const neighbors = new Map<string, string[]>();
   for (const edge of edges) {
@@ -86,7 +89,7 @@ export function seedPositions(
   const missing = nodes.filter((node) => !positions.has(node.id));
   missing.forEach((node, index) => {
     const anchors = (neighbors.get(node.id) ?? [])
-      .map((id) => positions.get(id))
+      .map((id) => anchorsById.get(id))
       .filter((point): point is Point => point !== undefined);
     // Desplazamiento determinista para no apilar nodos en el mismo punto.
     const angle = (2 * Math.PI * index) / Math.max(missing.length, 1);
@@ -100,6 +103,19 @@ export function seedPositions(
     }
   });
   return { positions, reused };
+}
+
+/** Detecta una línea o un núcleo aplastado por unos pocos valores extremos. */
+function collapsedPositions(positions: Positions): boolean {
+  if (positions.size < 10) return false;
+  for (const axis of ["x", "y"] as const) {
+    const values = [...positions.values()].map((point) => point[axis]).sort((a, b) => a - b);
+    const span = values[values.length - 1] - values[0];
+    const trim = Math.floor(values.length * 0.05);
+    const core = values[values.length - 1 - trim] - values[trim];
+    if (!Number.isFinite(span) || span === 0 || core / span < 0.001) return true;
+  }
+  return false;
 }
 
 export interface BuildOptions {
@@ -116,7 +132,12 @@ export function buildGraph(network: NetworkResponse, options: BuildOptions): Exp
 
   const [minValue, maxValue] = extent(network.nodes.map((node) => node.metrics[metric]));
   const [minWeight, maxWeight] = extent(network.edges.map((edge) => edge.weight));
-  const { positions, reused } = seedPositions(network.nodes, network.edges, knownPositions);
+  let { positions, reused } = seedPositions(network.nodes, network.edges, knownPositions);
+  // Un ajuste suave no recupera posiciones colapsadas: reiniciar las semillas
+  // permite que ForceAtlas2 vuelva a separar la red. Evolución conserva su mapa fijo.
+  if (runLayout && reused > 0 && collapsedPositions(positions)) {
+    ({ positions, reused } = seedPositions(network.nodes, network.edges, new Map()));
+  }
 
   for (const node of network.nodes) {
     const point = positions.get(node.id)!;

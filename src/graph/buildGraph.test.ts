@@ -66,6 +66,15 @@ describe("seedPositions", () => {
     const { positions } = seedPositions([node("a", 1), node("b", 1)], [], new Map());
     expect(positions.get("a")).not.toEqual(positions.get("b"));
   });
+
+  it("spreads a new connected network across the circle instead of chaining new anchors", () => {
+    const nodes = Array.from({ length: 400 }, (_, i) => node(String(i), 1));
+    const edges = nodes.slice(1).map((n) => edge("0", n.id));
+    const { positions, reused } = seedPositions(nodes, edges, new Map());
+    const xs = [...positions.values()].map((p) => p.x).sort((a, b) => a - b);
+    expect(reused).toBe(0);
+    expect(xs[360] - xs[40]).toBeGreaterThan(50);
+  });
 });
 
 describe("buildGraph", () => {
@@ -98,5 +107,17 @@ describe("buildGraph", () => {
       expect(Number.isFinite(attributes.x)).toBe(true);
       expect(Number.isFinite(attributes.y)).toBe(true);
     });
+  });
+
+  it("recovers a 400-node layout whose cached positions collapsed below a few outliers", () => {
+    const nodes = Array.from({ length: 400 }, (_, i) => node(String(i), 1 / (i + 1)));
+    const edges = nodes.slice(1).map((n) => edge("0", n.id));
+    const known = new Map(nodes.map((n, i) => [n.id, { x: 0, y: i < 3 ? (3 - i) * 1e9 : i * 1e-6 }]));
+    const graph = buildGraph(network(nodes, edges), { metric: "pagerank", knownPositions: known });
+    for (const axis of ["x", "y"] as const) {
+      const values = graph.mapNodes((_, attributes) => attributes[axis]).sort((a, b) => a - b);
+      expect(values.every(Number.isFinite)).toBe(true);
+      expect((values[379] - values[20]) / (values[399] - values[0])).toBeGreaterThan(0.1);
+    }
   });
 });
