@@ -3,14 +3,14 @@ import type { Lang } from "../i18n";
 import type { Theme } from "../state/theme";
 
 /**
- * Paleta de categorías (incluye los tres tonos del logo). Es la misma en claro y oscuro;
+ * Paleta de categorías en tema oscuro. RUL ajusta su naranja para el tema claro.
  * INFRA (categoría antigua, ya no aparece en los datos) queda en gris neutro.
  */
 const PALETTE: Record<CategoryCode, string> = {
   CHAR: "#858DCC", // violeta del logo
   LOC: "#8BCB2E", // verde lima del logo
   PRAC: "#DE6B9C", // rosa frambuesa
-  RUL: "#6BC8CC", // turquesa del logo
+  RUL: "#FF9818", // naranja vivo
   KAS: "#397DB8", // azul
   physical_INFRA: "#BC5653", // rojo terracota
   soft_INFRA: "#B99B30", // amarillo mostaza
@@ -38,13 +38,14 @@ export const CATEGORY_ORDER: CategoryCode[] = [
   "INFRA",
 ];
 
-export function categoryColor(code: string): string {
+export function categoryColor(code: string, theme: Theme = "oscuro"): string {
+  if (code === "RUL" && theme === "claro") return "#C84A00";
   return PALETTE[code as CategoryCode] ?? PALETTE.INFRA;
 }
 
 /** Fondo translúcido de chips y marcas de evidencia. */
 export function categoryTint(code: string, theme: Theme): string {
-  return `${categoryColor(code)}${theme === "oscuro" ? "2e" : "26"}`;
+  return `${categoryColor(code, theme)}${theme === "oscuro" ? "2e" : "26"}`;
 }
 
 const CATEGORY_LABELS: Record<Lang, Record<CategoryCode, string>> = {

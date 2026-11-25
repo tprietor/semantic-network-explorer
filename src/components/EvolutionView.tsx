@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTheme } from "../state/theme";
 import type { ReactNode } from "react";
 import type { CompareResponse, ExplorerMeta, NetworkResponse, RankingMetric } from "../api/client";
 import { useCompare, useNetwork } from "../api/queries";
@@ -344,6 +345,7 @@ function useWidth<T extends HTMLElement>() {
  * unir todo con una fila «fuera del top» formaba un abanico que tapaba el gráfico.
  */
 function SlopeChart({ data }: { data: CompareResponse }) {
+  const theme = useTheme();
   const { t } = useT();
   const select = useSelectionStore((state) => state.select);
   const [ref, measured] = useWidth<HTMLDivElement>();
@@ -389,7 +391,7 @@ function SlopeChart({ data }: { data: CompareResponse }) {
             const entered = inTop(lastRank) && !inTop(previousRank);
             const delta = previousRank !== null && lastRank !== null ? previousRank - lastRank : null;
             const strong = delta === null || Math.abs(delta) >= 5;
-            const color = categoryColor(trajectory.category);
+            const color = categoryColor(trajectory.category, theme);
             const summary = ranks.map((rank) => `#${rank ?? "—"}`).join(" → ");
             const lineWidth = strong ? 2.6 : 1.3;
             return (

@@ -283,7 +283,7 @@ function highlight(text: string, terms: { text: string; category: string }[], th
         key={index}
         style={{
           background: categoryTint(term.category, theme),
-          borderBottom: `2px solid ${categoryColor(term.category)}`,
+          borderBottom: `2px solid ${categoryColor(term.category, theme)}`,
         }}
       >
         {part}
@@ -355,7 +355,7 @@ function EdgeDetails({
               <button
                 type="button"
                 className="tag"
-                style={{ background: categoryTint(node.category, theme), borderColor: categoryColor(node.category) }}
+                style={{ background: categoryTint(node.category, theme), borderColor: categoryColor(node.category, theme) }}
                 onClick={() => select({ kind: "node", id: node.id })}
               >
                 <CategoryDot category={node.category} />

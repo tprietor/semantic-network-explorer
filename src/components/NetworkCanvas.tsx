@@ -40,8 +40,6 @@ interface Palette {
 /** Vecinos del foco que muestran etiqueta; con más, una entidad muy conectada se vuelve ilegible. */
 const LABELED_NEIGHBORS = 12;
 
-const defaultColor = (_id: string, category: string) => categoryColor(category);
-
 const PALETTES: Record<Theme, Palette> = {
   oscuro: {
     label: "#eef0ea",
@@ -301,12 +299,16 @@ export function NetworkCanvas({
   onSelect,
   // Pocas etiquetas fijas: el resto las coloca Sigma sin que se pisen.
   pinnedLabels = 8,
-  colorOf = defaultColor,
+  colorOf,
   zoomControls = false,
   onHover,
   interactive = true,
 }: CanvasProps) {
   const theme = useTheme();
+  const nodeColor = useMemo(
+    () => colorOf ?? ((_id: string, category: string) => categoryColor(category, theme)),
+    [colorOf, theme],
+  );
   // Compartido entre el controlador (lo llena) y el reducer (lo lee) sin recrear Sigma.
   const [labeled] = useState(() => new Set<string>());
   const [focus] = useState<{ id: string | null }>(() => ({ id: null }));
@@ -340,7 +342,7 @@ export function NetworkCanvas({
         const emphasized = state.isHovered || focus.id === _key;
         return {
           ...data,
-          color: colorOf(_key, attributes.category),
+          color: nodeColor(_key, attributes.category),
           labelColor: palette.label,
           zIndex: emphasized ? 4 : labeledNode ? 3 : state.isHighlighted ? 2 : 1,
           labelVisibility: emphasized
@@ -360,7 +362,7 @@ export function NetworkCanvas({
         return { ...data, color: palette.edge };
       }) satisfies EdgeReducer<NodeAttributes, EdgeAttributes>,
     };
-  }, [pinnedLabels, theme, interactive, labeled, focus, colorOf]);
+  }, [pinnedLabels, theme, interactive, labeled, focus, nodeColor]);
 
   return (
     <SigmaContainer graph={graph} options={options} style={{ background: "transparent" }}>
@@ -372,7 +374,7 @@ export function NetworkCanvas({
         interactive={interactive}
         labeled={labeled}
         focus={focus}
-        colorOf={colorOf}
+        colorOf={nodeColor}
       />
       {zoomControls && <ZoomControls />}
     </SigmaContainer>
