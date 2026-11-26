@@ -65,8 +65,7 @@ export const DEFAULT_FILTERS: Filters = {
   weighting: "fractional-document",
   minWeight: 0,
   metric: "pagerank",
-  // 75 se lee sin maraña; quien quiera más mueve el control.
-  topN: 75,
+  topN: 400,
   edgeDisplay: "strongest",
   colorBy: "category",
   excludedEntityIds: [],

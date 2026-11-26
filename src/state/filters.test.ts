@@ -8,6 +8,7 @@ import {
   filtersToSearch,
   toCompareRequest,
   toNetworkRequest,
+  useFilterStore,
   type Filters,
 } from "./filters";
 
@@ -29,6 +30,15 @@ describe("URL serialization", () => {
     expect(request.category_pairs).toEqual([["KAS", "CHAR"], ["KAS", "KAS"]]);
     expect(filtersToSearch(filters)).not.toMatch(/ATT|KNOW|SKILL/);
   });
+  it("starts at 400 and restores 400 from a customized value", () => {
+    expect(filtersFromSearch("").topN).toBe(400);
+    expect(filtersFromSearch("?top=75").topN).toBe(75);
+    useFilterStore.getState().update({ topN: 75 });
+    expect(useFilterStore.getState().filters.topN).toBe(75);
+    useFilterStore.getState().reset();
+    expect(useFilterStore.getState().filters.topN).toBe(400);
+  });
+
   it("omits defaults so the base URL stays clean", () => {
     expect(filtersToSearch(DEFAULT_FILTERS)).toBe("");
   });
@@ -81,7 +91,7 @@ describe("API requests", () => {
     expect(request.categories).toBeNull();
     expect(request.document_ids).toBeNull();
     expect(request.category_pairs).toBeNull();
-    expect(request.top_n).toBe(75);
+    expect(request.top_n).toBe(400);
     expect(request.productive_sector).toBe("Agroforestry");
     expect(request.document_types).toBeNull();
   });
