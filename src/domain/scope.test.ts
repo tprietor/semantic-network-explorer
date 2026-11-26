@@ -17,8 +17,8 @@ const DOCS = [
 const META = {
   documents: DOCS,
   periods: [
-    { id: "2000-2020", label: "", year_from: 2000, year_to: 2020, document_count: 1 },
-    { id: "2021-2023", label: "", year_from: 2021, year_to: 2023, document_count: 2 },
+    { id: "2000-2019", label: "", year_from: 2000, year_to: 2019, document_count: 1 },
+    { id: "2020-2023", label: "", year_from: 2020, year_to: 2023, document_count: 2 },
     { id: "2024-2026", label: "", year_from: 2024, year_to: 2026, document_count: 1 },
   ],
 } as unknown as ExplorerMeta;
@@ -49,10 +49,16 @@ describe("documentsInScope", () => {
 });
 
 describe("periodDocumentCount", () => {
+  it("assigns documents from 2020 to the middle period", () => {
+    const meta = { ...META, documents: [doc("boundary", "es", null, 2020)] };
+    expect(periodDocumentCount(meta, DEFAULT_FILTERS, "2000-2019")).toBe(0);
+    expect(periodDocumentCount(meta, DEFAULT_FILTERS, "2020-2023")).toBe(1);
+  });
+
   it("counts the documents of the current scope in each period", () => {
     const filters = { ...DEFAULT_FILTERS, language: "es" };
     expect(periodDocumentCount(META, filters, "all")).toBe(2);
-    expect(periodDocumentCount(META, filters, "2000-2020")).toBe(1);
+    expect(periodDocumentCount(META, filters, "2000-2019")).toBe(1);
     expect(periodDocumentCount(META, filters, "2024-2026")).toBe(0);
     expect(periodDocumentCount(undefined, filters, "all")).toBeUndefined();
   });

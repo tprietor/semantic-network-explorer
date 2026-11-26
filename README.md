@@ -29,7 +29,7 @@ repositorio solo filtra, dibuja y compara.
   El embudo indica cuánto quita cada paso. «Links visibles» dibuja por defecto los
   3 links más fuertes de cada entidad para que la red se lea; las métricas siempre
   se calculan sobre la red completa.
-- **Evolución**: compara los períodos 2000–2020, 2021–2023 y 2024–2026 con los mismos filtros.
+- **Evolución**: compara los períodos 2000–2019, 2020–2023 y 2024–2026 con los mismos filtros.
   Muestra la entidad líder por métrica, las tres redes sobre el mismo mapa de
   posiciones, el cambio de ranking y, por tramo, las entidades que entran, salen o
   cambian de posición en el top.

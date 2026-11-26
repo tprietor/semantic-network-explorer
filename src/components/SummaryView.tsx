@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useTheme } from "../state/theme";
 import type { CompareResponse, ExplorerMeta, NetworkResponse } from "../api/client";
 import { gainers, headline, leadersByCategory, losers, mostConnected, strongestLinks, topRelations } from "../domain/insights";
 import { categoryColor, formatInt, formatMetric, metricLabel, periodShort } from "../domain/vocabulary";
@@ -28,7 +27,6 @@ function yearRange(meta: ExplorerMeta | undefined) {
 }
 
 export function SummaryView({ network, compare, meta, filters, isFetching }: SummaryViewProps) {
-  const theme = useTheme();
   const { t, lang } = useT();
   const select = useSelectionStore((state) => state.select);
   const setTab = useSelectionStore((state) => state.setTab);
@@ -252,7 +250,7 @@ export function SummaryView({ network, compare, meta, filters, isFetching }: Sum
                   <span className="name">{node.name}</span>
                   <span
                     className="mini-bar"
-                    style={{ width: Math.max(8, share * 28), background: categoryColor(category, theme) }}
+                    style={{ width: Math.max(8, share * 28), background: categoryColor(category) }}
                   />
                   <span className="value">#{node.ranks[metric]}</span>
                 </button>

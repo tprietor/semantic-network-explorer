@@ -12,6 +12,14 @@ import {
 } from "./filters";
 
 describe("URL serialization", () => {
+  it("opens saved links with the revised periods", () => {
+    const before2020 = filtersFromSearch("?period=2000-2020");
+    const since2020 = filtersFromSearch("?period=2021-2023");
+    expect(before2020.period).toBe("2000-2019");
+    expect(since2020.period).toBe("2020-2023");
+    expect(filtersToSearch(since2020)).toContain("period=2020-2023");
+  });
+
   it("migrates saved categories and pairs to one KAS selection", () => {
     const filters = filtersFromSearch("?cats=ATT,KNOW,SKILL,CHAR&links=pairs&pairs=ATT~CHAR,CHAR~KNOW,SKILL~ATT");
     expect(filters.categories).toEqual(["KAS", "CHAR"]);
@@ -88,7 +96,7 @@ describe("API requests", () => {
   it("builds compare requests for both periods without top_n", () => {
     const request = toCompareRequest(DEFAULT_FILTERS, 10);
 
-    expect(request.periods).toEqual(["2000-2020", "2021-2023", "2024-2026"]);
+    expect(request.periods).toEqual(["2000-2019", "2020-2023", "2024-2026"]);
     expect(request.top_k).toBe(10);
     expect("top_n" in request).toBe(false);
   });
@@ -126,7 +134,7 @@ describe("activeFilterCount", () => {
   it("counts only the filters that differ from the defaults", () => {
     expect(activeFilterCount(DEFAULT_FILTERS)).toBe(0);
     expect(
-      activeFilterCount({ ...DEFAULT_FILTERS, period: "2021-2023", categories: ["CHAR", "PRAC"], topN: 60 }),
+      activeFilterCount({ ...DEFAULT_FILTERS, period: "2020-2023", categories: ["CHAR", "PRAC"], topN: 60 }),
     ).toBe(3);
     expect(activeFilterCount({ ...DEFAULT_FILTERS, categoryPairs: [] })).toBe(0);
   });

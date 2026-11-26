@@ -1020,7 +1020,7 @@ export interface components {
              */
             document_type?: string | null;
             /** Periods */
-            periods?: ("2000-2020" | "2021-2023" | "2024-2026")[];
+            periods?: ("2000-2019" | "2020-2023" | "2024-2026")[];
             /**
              * Top K
              * @default 20
@@ -1354,7 +1354,7 @@ export interface components {
              * @default all
              * @enum {string}
              */
-            period: "all" | "2000-2020" | "2021-2023" | "2024-2026";
+            period: "all" | "2000-2019" | "2020-2023" | "2024-2026";
             /**
              * Top N
              * @description Cantidad de nodos a devolver según ranking_metric; null devuelve todos
@@ -3310,7 +3310,7 @@ export interface operations {
             query: {
                 source_id: string;
                 target_id: string;
-                period?: "all" | "2000-2020" | "2021-2023" | "2024-2026";
+                period?: "all" | "2000-2019" | "2020-2023" | "2024-2026";
                 incubator_number?: "all" | number;
                 language?: string;
                 document_types?: string[] | null;

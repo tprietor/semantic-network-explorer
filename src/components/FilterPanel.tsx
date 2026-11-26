@@ -149,7 +149,7 @@ export function FilterPanel({ meta, network }: FilterPanelProps) {
                     onClick={() => toggleCategory(code)}
                     style={
                       active
-                        ? { borderColor: categoryColor(code, theme), background: categoryTint(code, theme) }
+                        ? { borderColor: categoryColor(code), background: categoryTint(code, theme) }
                         : undefined
                     }
                   >

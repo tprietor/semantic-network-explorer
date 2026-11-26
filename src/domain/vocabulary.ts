@@ -3,18 +3,18 @@ import type { Lang } from "../i18n";
 import type { Theme } from "../state/theme";
 
 /**
- * Paleta de categorías en tema oscuro. RUL ajusta su naranja para el tema claro.
+ * Paleta de categorías compartida por los temas claro y oscuro.
  * INFRA (categoría antigua, ya no aparece en los datos) queda en gris neutro.
  */
 const PALETTE: Record<CategoryCode, string> = {
   CHAR: "#858DCC", // violeta del logo
-  LOC: "#8BCB2E", // verde lima del logo
+  LOC: "#6BC8CC", // celeste turquesa del logo
   PRAC: "#DE6B9C", // rosa frambuesa
-  RUL: "#FF9818", // naranja vivo
+  RUL: "#FFFF00", // amarillo puro
   KAS: "#397DB8", // azul
   physical_INFRA: "#BC5653", // rojo terracota
-  soft_INFRA: "#B99B30", // amarillo mostaza
-  eco_INFRA: "#794A83", // morado ciruela
+  soft_INFRA: "#794A83", // morado ciruela
+  eco_INFRA: "#8BCB2E", // verde lima del logo
   INFRA: "#8E948F",
 };
 
@@ -38,14 +38,13 @@ export const CATEGORY_ORDER: CategoryCode[] = [
   "INFRA",
 ];
 
-export function categoryColor(code: string, theme: Theme = "oscuro"): string {
-  if (code === "RUL" && theme === "claro") return "#C84A00";
+export function categoryColor(code: string): string {
   return PALETTE[code as CategoryCode] ?? PALETTE.INFRA;
 }
 
 /** Fondo translúcido de chips y marcas de evidencia. */
 export function categoryTint(code: string, theme: Theme): string {
-  return `${categoryColor(code, theme)}${theme === "oscuro" ? "2e" : "26"}`;
+  return `${categoryColor(code)}${theme === "oscuro" ? "2e" : "26"}`;
 }
 
 const CATEGORY_LABELS: Record<Lang, Record<CategoryCode, string>> = {
@@ -246,7 +245,8 @@ export function edgeWeightings(lang: Lang) {
   return EDGE_WEIGHTINGS[lang];
 }
 
-export const PERIOD_ORDER: PeriodId[] = ["all", "2000-2020", "2021-2023", "2024-2026"];
+export const COMPARED_PERIODS = ["2000-2019", "2020-2023", "2024-2026"] as const;
+export const PERIOD_ORDER: PeriodId[] = ["all", ...COMPARED_PERIODS];
 
 export function periodShort(period: PeriodId, lang: Lang): string {
   if (period === "all") return lang === "es" ? "Todo" : "All";

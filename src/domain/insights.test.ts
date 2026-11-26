@@ -46,18 +46,18 @@ const NETWORK = {
 
 function compare(points: Record<string, [number | null, number | null]>): CompareResponse {
   return {
-    periods: ["2021-2023", "2024-2026"],
+    periods: ["2020-2023", "2024-2026"],
     trajectories: Object.entries(points).map(([id, [a, b]]) => ({
       id,
       name: id,
       category: "CHAR",
       points: [
-        { period: "2021-2023", rank: a, value: null, in_top: true },
+        { period: "2020-2023", rank: a, value: null, in_top: true },
         { period: "2024-2026", rank: b, value: null, in_top: true },
       ],
     })),
     central_by_period: {
-      "2021-2023": { pagerank: { id: "a", name: "a", category: "CHAR", value: 1 }, degree: { id: "a", name: "a", category: "CHAR", value: 1 } },
+      "2020-2023": { pagerank: { id: "a", name: "a", category: "CHAR", value: 1 }, degree: { id: "a", name: "a", category: "CHAR", value: 1 } },
       "2024-2026": { pagerank: { id: "b", name: "b", category: "CHAR", value: 1 }, degree: { id: "a", name: "a", category: "CHAR", value: 1 } },
     },
   } as unknown as CompareResponse;
@@ -122,22 +122,22 @@ describe("insights", () => {
 
   it("measures rises on the most recent step when there are three periods", () => {
     const data = {
-      periods: ["2000-2020", "2021-2023", "2024-2026"],
+      periods: ["2000-2019", "2020-2023", "2024-2026"],
       trajectories: [
         {
           id: "castaña",
           name: "castaña",
           category: "eco_INFRA",
           points: [
-            { period: "2000-2020", rank: 90, value: null, in_top: false },
-            { period: "2021-2023", rank: 10, value: null, in_top: true },
+            { period: "2000-2019", rank: 90, value: null, in_top: false },
+            { period: "2020-2023", rank: 10, value: null, in_top: true },
             { period: "2024-2026", rank: 4, value: null, in_top: true },
           ],
         },
       ],
       central_by_period: {},
     } as unknown as CompareResponse;
-    expect(gainers(data)[0]).toMatchObject({ fromPeriod: "2021-2023", toPeriod: "2024-2026", delta: 6 });
+    expect(gainers(data)[0]).toMatchObject({ fromPeriod: "2020-2023", toPeriod: "2024-2026", delta: 6 });
   });
 });
 

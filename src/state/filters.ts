@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { MessageKey } from "../i18n";
+import { COMPARED_PERIODS, PERIOD_ORDER } from "../domain/vocabulary";
 import type {
   CategoryCode,
   CompareRequest,
@@ -72,10 +73,10 @@ export const DEFAULT_FILTERS: Filters = {
 };
 
 const SECTORS: SectorFilter[] = ["Agroforestry", "all"];
-const PERIODS: PeriodId[] = ["all", "2000-2020", "2021-2023", "2024-2026"];
-
-/** Períodos que compara la vista de evolución, en orden cronológico. */
-export const COMPARED_PERIODS = ["2000-2020", "2021-2023", "2024-2026"] as const;
+const LEGACY_PERIODS: Readonly<Partial<Record<string, PeriodId>>> = {
+  "2000-2020": "2000-2019",
+  "2021-2023": "2020-2023",
+};
 const LINK_MODES: LinkMode[] = ["any", "between", "within", "pairs"];
 const WEIGHTINGS: EdgeWeighting[] = ["fractional-document", "fractional", "sentence-count", "document-count"];
 const METRICS: RankingMetric[] = ["pagerank", "degree", "strength", "betweenness", "closeness", "document_count"];
@@ -155,10 +156,11 @@ export function filtersFromSearch(search: string): Filters {
   const incubator = Number.parseInt(params.get("inc") ?? "", 10);
   const minWeight = Number.parseFloat(params.get("minw") ?? "");
   const documentTypes = [...new Set(params.getAll("dtype").map((type) => type.trim()).filter(Boolean))].sort();
+  const requestedPeriod = params.get("period");
 
   return {
     sector: oneOf(params.get("sector"), SECTORS, DEFAULT_FILTERS.sector),
-    period: oneOf(params.get("period"), PERIODS, DEFAULT_FILTERS.period),
+    period: oneOf(requestedPeriod && (LEGACY_PERIODS[requestedPeriod] ?? requestedPeriod), PERIOD_ORDER, DEFAULT_FILTERS.period),
     incubator: incubator >= 1 && incubator <= 8 ? incubator : "all",
     language: params.get("lang")?.trim().toLowerCase() || "all",
     documentTypes,

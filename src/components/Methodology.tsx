@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "../state/theme";
 import type { KeyboardEvent } from "react";
 import type { ExplorerMeta } from "../api/client";
 import { METRIC_ORDER, categoryColor, categoryLabel, formatInt, metricInfo } from "../domain/vocabulary";
@@ -46,7 +45,6 @@ const LIMITS: MessageKey[] = ["method.limit1", "method.limit2", "method.limit3",
  * métrica, y qué límites tiene. Organizada en pestañas para no obligar a leerlo todo.
  */
 export function Methodology({ meta, onClose: dismiss }: { meta: ExplorerMeta | undefined; onClose: () => void }) {
-  const theme = useTheme();
   const { t, lang } = useT();
   const { closing, close: onClose } = useAnimatedClose(dismiss);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -164,10 +162,10 @@ export function Methodology({ meta, onClose: dismiss }: { meta: ExplorerMeta | u
                   <li
                     key={category.code}
                     className="method-card"
-                    style={{ borderTopColor: categoryColor(category.code, theme) }}
+                    style={{ borderTopColor: categoryColor(category.code) }}
                   >
                     <div className="method-card-head">
-                      <span className="dot" style={{ background: categoryColor(category.code, theme) }} />
+                      <span className="dot" style={{ background: categoryColor(category.code) }} />
                       <strong>{categoryLabel(category.code, lang)}</strong>
                       <span className="method-tag num">{formatInt(category.entity_count, lang)}</span>
                     </div>

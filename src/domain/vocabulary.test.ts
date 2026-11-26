@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { CATEGORY_ORDER, categoryLabel, categoryPalette, formatInt, formatMetric, metricLabel, periodShort } from "./vocabulary";
+import { CATEGORY_ORDER, categoryColor, categoryLabel, categoryPalette, formatInt, formatMetric, metricLabel, periodShort } from "./vocabulary";
 
 describe("vocabulary", () => {
+  it("uses the selected colors for places, rules and infrastructures", () => {
+    expect(categoryColor("LOC")).toBe("#6BC8CC");
+    expect(categoryColor("eco_INFRA")).toBe("#8BCB2E");
+    expect(categoryColor("soft_INFRA")).toBe("#794A83");
+    expect(categoryColor("RUL")).toBe("#FFFF00");
+  });
+
   it("offers one KAS category in both languages", () => {
     expect(CATEGORY_ORDER.filter((code) => code !== "INFRA")).toHaveLength(8);
     expect(CATEGORY_ORDER).toContain("KAS");
@@ -26,8 +33,8 @@ describe("vocabulary", () => {
     expect(categoryLabel("eco_INFRA", "en", true)).toBe("Ecological infra.");
     expect(categoryLabel("UNKNOWN", "en")).toBe("UNKNOWN");
     expect(metricLabel("betweenness", "en")).toBe("Bridge between groups");
-    expect(periodShort("2021-2023", "es")).toBe("2021–23");
-    expect(periodShort("2000-2020", "en")).toBe("2000–20");
+    expect(periodShort("2020-2023", "es")).toBe("2020–23");
+    expect(periodShort("2000-2019", "en")).toBe("2000–19");
     expect(periodShort("all", "en")).toBe("All");
   });
 });
