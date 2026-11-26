@@ -2,6 +2,35 @@
   flex: 1;
   min-width: 0;
 }
+.dashboard-view-picker {
+  display: inline-flex;
+  align-self: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surf);
+}
+.dashboard-view-picker button {
+  min-height: 44px;
+  padding: .45rem .95rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--tx2);
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 650;
+}
+.dashboard-view-picker button:hover {
+  color: var(--tx);
+}
+.dashboard-view-picker button[aria-pressed="true"] {
+  border-color: var(--line2);
+  color: var(--acc);
+  background: var(--acc2);
+}
 .dashboard-intro {
   min-height: clamp(70px, 12vw, 142px);
   border: 1px solid var(--line);
@@ -128,6 +157,27 @@
 .dashboard-status strong,
 .dashboard-detail strong {
   color: var(--tx);
+}
+.dashboard-nested-fit {
+  margin: 8px 13px 0;
+  padding: .65rem .75rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--tx2);
+  font-size: .96rem;
+  line-height: 1.45;
+}
+.dashboard-nested-fit summary {
+  color: var(--tx);
+  font-weight: 650;
+  cursor: pointer;
+}
+.dashboard-nested-fit p,
+.dashboard-nested-fit ul {
+  margin: .55rem 0 0;
+}
+.dashboard-nested-fit ul {
+  padding-inline-start: 1.3rem;
 }
 .dashboard-graph {
   position: relative;

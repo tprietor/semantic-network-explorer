@@ -25,6 +25,18 @@ interface MacroBetweenness {
   scores: number[];
   stories: MacroBridgeStory[];
 }
+interface NestedFit {
+  seed: number;
+  blocks: {
+    size: number;
+    internal_edges: number;
+    components: number;
+    isolated: number;
+    largest_component: number;
+  }[];
+  recursive: { trialsPerModel: number; blocks: number };
+  sensitivity: { nodes: number; splits: number; trials: number; sizes: number[] };
+}
 interface Snapshot {
   label: string;
   documents: number;
@@ -34,6 +46,9 @@ interface Snapshot {
   categoryPositions: Coordinate[];
   clusterPositions: Coordinate[];
   stories: BridgeStory[];
+  isolatedActors?: number;
+  isolatedNodes?: number;
+  nestedFit?: NestedFit;
   macroBetweenness?: MacroBetweenness;
 }
 interface Point { x: number; y: number }
@@ -61,6 +76,19 @@ interface Layout {
   height: number;
 }
 type Stage = 0 | 1 | 2 | 3;
+
+const DASHBOARD_VIEWS = {
+  full: { file: "dashboard.json", label: "dashboard.fullView", title: "dashboard.title", scope: "dashboard.scope" },
+  actors: { file: "actor-dashboard.json", label: "dashboard.actorView", title: "dashboard.actorTitle", scope: "dashboard.actorScope" },
+  "practice-actors": {
+    file: "practice-actor-dashboard.json",
+    label: "dashboard.practiceActorView",
+    title: "dashboard.practiceActorTitle",
+    scope: "dashboard.practiceActorScope",
+  },
+} as const;
+type DashboardMode = keyof typeof DASHBOARD_VIEWS;
+const VIEW_OPTIONS = Object.keys(DASHBOARD_VIEWS) as DashboardMode[];
 
 const ORANGE = "#ff982d";
 const TAU = 2 * Math.PI;
@@ -251,6 +279,7 @@ function makeLayout(snapshot: Snapshot, clustered: boolean, width: number, lang:
 interface CanvasProps {
   snapshot: Snapshot;
   stage: Stage;
+  grouped: boolean;
   lang: Lang;
   selected: number | null;
   story: BridgeStory | undefined;
@@ -259,7 +288,7 @@ interface CanvasProps {
   onMacro: (id: number) => void;
   onSelect: (node: number | null) => void;
 }
-function DashboardGraph({ snapshot, stage, lang, selected, story, macroStory, selectedMacro, onMacro, onSelect }: CanvasProps) {
+function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macroStory, selectedMacro, onMacro, onSelect }: CanvasProps) {
   const theme = useTheme();
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -267,7 +296,6 @@ function DashboardGraph({ snapshot, stage, lang, selected, story, macroStory, se
   const livePositions = useRef<Point[]>([]);
   const [width, setWidth] = useState(0);
   const clustered = stage > 0;
-  const grouped = stage >= 2 && macroClusters(snapshot.label).length > 0;
   const intermediaries = useMemo(
     () => snapshot.nodes.map((node, index) => stage === 3 && (snapshot.macroBetweenness?.scores[index] ?? node[3]) > 0),
     [snapshot, stage],
@@ -458,7 +486,37 @@ function DashboardGraph({ snapshot, stage, lang, selected, story, macroStory, se
   );
 }
 
-function DashboardStory({ snapshots }: { snapshots: Snapshot[] }) {
+function NestedFitDetails({ fit }: { fit: NestedFit }) {
+  const { t } = useT();
+  const [parent] = fit.blocks;
+  return (
+    <details className="dashboard-nested-fit">
+      <summary>{t("dashboard.nestedFit", { sizes: fit.blocks.map((block) => block.size).join(" + ") })}</summary>
+      <p>{t("dashboard.nestedModel", { seed: fit.seed })}</p>
+      <ul>
+        {fit.blocks.map((block, rank) => (
+          <li key={rank}>
+            <strong>{clusterLabel(rank)}</strong>{" "}
+            {t("dashboard.nestedBlock", { n: block.size, edges: block.internal_edges })}
+            {" · "}
+            {block.components === 1 ? t("dashboard.nestedConnected") : t("dashboard.nestedComponents", {
+              n: block.components, isolated: block.isolated, largest: block.largest_component,
+            })}
+          </li>
+        ))}
+      </ul>
+      <p>{t("dashboard.nestedRefit", {
+        n: parent.size, trials: fit.recursive.trialsPerModel, blocks: fit.recursive.blocks,
+      })}</p>
+      <p>{t("dashboard.nestedControl", {
+        n: fit.sensitivity.nodes, splits: fit.sensitivity.splits, trials: fit.sensitivity.trials,
+        sizes: fit.sensitivity.sizes.join(" / "),
+      })}</p>
+    </details>
+  );
+}
+
+function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: DashboardMode }) {
   const { t, lang } = useT();
   const [period, setPeriod] = useState(0);
   const [shown, setShown] = useState(0);
@@ -468,7 +526,14 @@ function DashboardStory({ snapshots }: { snapshots: Snapshot[] }) {
   const [selectedMacro, setSelectedMacro] = useState<number | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const snapshot = snapshots[shown];
-  const macros = macroClusters(snapshot.label);
+  const macros = view === "full" ? macroClusters(snapshot.label) : [];
+  const config = DASHBOARD_VIEWS[view];
+  const title = t(config.title);
+  const practiceCount = view === "practice-actors" ? snapshot.nodes.filter((node) => node[1] === "PRAC").length : 0;
+  const nodeCount = view === "practice-actors" ? t("dashboard.practiceActorCounts", {
+    practices: formatInt(practiceCount, lang),
+    actors: formatInt(snapshot.nodes.length - practiceCount, lang),
+  }) : formatInt(snapshot.nodes.length, lang) + " " + t(view === "actors" ? "dashboard.actorViewLabel" : "dashboard.nodes");
   const hasMacros = macros.length > 0;
   const assignedRanks = new Set(macros.flatMap((macro) => macro.blocks.map((block) => block.rank)));
   const unassigned = Array.from({ length: snapshot.blocks }, (_, rank) => rank)
@@ -522,11 +587,11 @@ function DashboardStory({ snapshots }: { snapshots: Snapshot[] }) {
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
   return (
-    <section className="card dashboard-story" aria-label={t("dashboard.title")}>
+    <section className="card dashboard-story" aria-label={title}>
       <header className="dashboard-header">
         <div>
-          <h2>{t("dashboard.title")}</h2>
-          <p>{t("dashboard.scope")}</p>
+          <h2>{title}</h2>
+          <p>{t(config.scope)}</p>
         </div>
         <button type="button" className="dashboard-action" onClick={() => {
           setStep(nextStage);
@@ -571,9 +636,12 @@ function DashboardStory({ snapshots }: { snapshots: Snapshot[] }) {
         <div className="dashboard-status num" aria-live="polite">
           <strong>{snapshot.label}</strong>
           <span>{t(macroMetric ? "dashboard.macroBridgeScore" : STAGES[stage])}</span>
-          <span>{t("common.documents", { n: formatInt(snapshot.documents, lang) })} · {formatInt(snapshot.nodes.length, lang)} {t("dashboard.nodes")} · {formatInt(snapshot.edges.length, lang)} {t("dashboard.edges")}</span>
+          <span>{t("common.documents", { n: formatInt(snapshot.documents, lang) })} · {nodeCount} · {formatInt(snapshot.edges.length, lang)} {t("dashboard.edges")}</span>
+          {snapshot.isolatedActors !== undefined && <span>{t("dashboard.actorIsolates", { n: formatInt(snapshot.isolatedActors, lang) })}</span>}
+          {snapshot.isolatedNodes !== undefined && <span>{t("dashboard.isolatedNodes", { n: formatInt(snapshot.isolatedNodes, lang) })}</span>}
         </div>
-        <DashboardGraph snapshot={snapshot} stage={stage} lang={lang} selected={selected} story={story} macroStory={macroStory}
+        {stage > 0 && snapshot.nestedFit && <NestedFitDetails key={snapshot.label} fit={snapshot.nestedFit} />}
+        <DashboardGraph snapshot={snapshot} stage={stage} grouped={hasMacros && stage >= 2} lang={lang} selected={selected} story={story} macroStory={macroStory}
           selectedMacro={selectedMacro} onMacro={selectMacro} onSelect={selectNode} />
         {hasMacros && stage >= 2 && unassigned && <p className="dashboard-unassigned">{t("dashboard.unassigned", { cluster: unassigned })}</p>}
       </div>
@@ -639,10 +707,12 @@ function DashboardStory({ snapshots }: { snapshots: Snapshot[] }) {
 
 export function DashboardView() {
   const { t } = useT();
+  const [view, setView] = useState<DashboardMode>("full");
   const data = useQuery({
-    queryKey: ["dashboard", "lognormal"],
+    queryKey: ["dashboard", "lognormal", view],
     queryFn: async ({ signal }): Promise<Snapshot[]> => {
-      const response = await fetch(import.meta.env.BASE_URL + "data/dashboard.json", { signal });
+      const { file } = DASHBOARD_VIEWS[view];
+      const response = await fetch(import.meta.env.BASE_URL + "data/" + file, { signal });
       if (!response.ok) throw new Error("Dashboard snapshot unavailable");
       return response.json() as Promise<Snapshot[]>;
     },
@@ -650,14 +720,21 @@ export function DashboardView() {
   });
   return (
     <main className="dashboard-view scroll-view">
-      <div className="card dashboard-intro" aria-hidden="true" />
-      {data.data ? <DashboardStory snapshots={data.data} /> : data.isError ? (
+      <div className="dashboard-view-picker" role="group" aria-label={t("dashboard.viewPicker")}>
+        {VIEW_OPTIONS.map((option) => (
+          <button key={option} type="button" aria-pressed={view === option} onClick={() => setView(option)}>
+            {t(DASHBOARD_VIEWS[option].label)}
+          </button>
+        ))}
+      </div>
+      {view === "full" && <div className="card dashboard-intro" aria-hidden="true" />}
+      {data.data ? <DashboardStory key={view} snapshots={data.data} view={view} /> : data.isError ? (
         <div className="notice error">
           {t("dashboard.loadError")}{" "}
           <button type="button" onClick={() => void data.refetch()}>{t("dashboard.retry")}</button>
         </div>
       ) : <Loader label={t("common.loading")} size={52} />}
-      <EgoNetworksView />
+      {view === "full" && <EgoNetworksView />}
     </main>
   );
 }
