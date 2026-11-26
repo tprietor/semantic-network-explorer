@@ -17,12 +17,13 @@ export function useDebouncedFilters(filters: Filters): Filters {
   return debounced;
 }
 
-export function useMeta(sector: ProductiveSector) {
+export function useMeta(sector: ProductiveSector, enabled = true) {
   return useQuery({
     queryKey: ["explorer", "meta", sector],
     queryFn: ({ signal }) => explorerApi.meta(sector, signal),
     placeholderData: keepPreviousData,
     staleTime: 5 * 60_000,
+    enabled,
   });
 }
 

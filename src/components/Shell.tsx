@@ -101,6 +101,7 @@ export function TopBar({ meta, network }: TopBarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const view = VIEWS.find((item) => item.id === tab) ?? VIEWS[0];
+  const isDashboard = tab === "summary";
 
   useEffect(() => {
     if (!menuOpen && !helpOpen) return;
@@ -136,57 +137,63 @@ export function TopBar({ meta, network }: TopBarProps) {
   );
 
   return (
-    <header className={`topbar${searchOpen ? " search-open" : ""}`}>
+    <header className={`topbar${!isDashboard && searchOpen ? " search-open" : ""}`}>
       <span className="topbar-logo" aria-hidden>
         <LogoIcon />
       </span>
       <div className="topbar-title">
         <h1>{t(view.title)}</h1>
-        <p className="num">
-          {documentCount !== undefined ? t("common.documents", { n: formatInt(documentCount, lang) }) : t("common.loading")}
-          {network &&
-            t("top.counts", {
-              nodes: formatInt(network.stages.shown.nodes, lang),
-              edges: formatInt(network.stages.shown.edges, lang),
-              metric: metricLabel(filters.metric, lang),
+        {!isDashboard && (
+          <p className="num">
+            {documentCount !== undefined ? t("common.documents", { n: formatInt(documentCount, lang) }) : t("common.loading")}
+            {network &&
+              t("top.counts", {
+                nodes: formatInt(network.stages.shown.nodes, lang),
+                edges: formatInt(network.stages.shown.edges, lang),
+                metric: metricLabel(filters.metric, lang),
+              })}
+          </p>
+        )}
+      </div>
+
+      {!isDashboard && (
+        <>
+          <SearchBox network={network} open={searchOpen} onClose={() => setSearchOpen(false)} />
+          <button
+            type="button"
+            className="icon-btn search-toggle"
+            aria-label={t("search.open")}
+            aria-expanded={searchOpen}
+            onClick={() => setSearchOpen(true)}
+          >
+            <SearchIcon />
+          </button>
+
+          <div className="pill-group periods" role="group" aria-label={t("top.period")}>
+            {PERIOD_ORDER.map((period) => {
+              const count = periodDocumentCount(meta, filters, period);
+              return (
+                <button
+                  key={period}
+                  type="button"
+                  aria-pressed={filters.period === period}
+                  disabled={count === 0}
+                  data-tip={
+                    count === 0
+                      ? t("top.periodEmpty")
+                      : count !== undefined
+                        ? t("common.documents", { n: formatInt(count, lang) })
+                        : undefined
+                  }
+                  onClick={() => update({ period })}
+                >
+                  {periodShort(period, lang)}
+                </button>
+              );
             })}
-        </p>
-      </div>
-
-      <SearchBox network={network} open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <button
-        type="button"
-        className="icon-btn search-toggle"
-        aria-label={t("search.open")}
-        aria-expanded={searchOpen}
-        onClick={() => setSearchOpen(true)}
-      >
-        <SearchIcon />
-      </button>
-
-      <div className="pill-group periods" role="group" aria-label={t("top.period")}>
-        {PERIOD_ORDER.map((period) => {
-          const count = periodDocumentCount(meta, filters, period);
-          return (
-            <button
-              key={period}
-              type="button"
-              aria-pressed={filters.period === period}
-              disabled={count === 0}
-              data-tip={
-                count === 0
-                  ? t("top.periodEmpty")
-                  : count !== undefined
-                    ? t("common.documents", { n: formatInt(count, lang) })
-                    : undefined
-              }
-              onClick={() => update({ period })}
-            >
-              {periodShort(period, lang)}
-            </button>
-          );
-        })}
-      </div>
+          </div>
+        </>
+      )}
 
       <div className="wide-only">{langSwitch}</div>
 

@@ -1,0 +1,85 @@
+.dashboard-ego-section .dashboard-header { margin-bottom: 8px; }
+.dashboard-ego-instructions {
+  margin: 0;
+  color: var(--tx2);
+  line-height: 1.45;
+}
+.dashboard-ego-panel {
+  border: 1px solid var(--line2);
+  border-radius: 15px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  min-width: 0;
+}
+.dashboard-ego-panel:last-child { margin-bottom: 0; }
+.dashboard-ego-heading {
+  padding: 14px clamp(10px, 2vw, 20px) 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 14px;
+}
+.dashboard-ego-heading h3 {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+}
+.dashboard-ego-heading span { color: var(--tx2); }
+.dashboard-ego-timeline { margin: 4px 12px 13px; }
+.dashboard-ego-plot {
+  background: var(--graph);
+  border-block: 1px solid var(--line);
+  position: relative;
+  height: clamp(360px, 48vw, 570px);
+}
+.dashboard-ego-plot canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.dashboard-ego-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--tx);
+  background: var(--acc2);
+  border: 1px solid var(--acc);
+  border-radius: 999px;
+  padding: .66rem .95rem;
+  box-shadow: 0 0 0 4px var(--graph);
+  font-weight: 720;
+}
+.dashboard-ego-center[aria-disabled="true"] { cursor: default; }
+.dashboard-ego-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  align-items: start;
+  padding: 12px clamp(10px, 2vw, 20px);
+}
+.dashboard-ego-footer p {
+  margin: 5px 0 0;
+  color: var(--tx2);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.dashboard-ego-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.dashboard-ego-tools select {
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  background: var(--surf2);
+  color: var(--tx);
+  padding: .53rem .65rem;
+  max-width: min(220px, 100%);
+  min-width: 0;
+  font: inherit;
+}
+.dashboard-ego-tools :disabled { opacity: .56; cursor: default; }
+@media (max-width: 730px) {
+  .dashboard-ego-footer { grid-template-columns: minmax(0, 1fr); }
+}
