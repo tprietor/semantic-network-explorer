@@ -81,11 +81,12 @@ export function BottomTabs() {
 interface TopBarProps {
   meta: ExplorerMeta | undefined;
   network: NetworkResponse | undefined;
+  dashboardControl?: ReactNode;
 }
 
 const LANGS: Lang[] = ["es", "en"];
 
-export function TopBar({ meta, network }: TopBarProps) {
+export function TopBar({ meta, network, dashboardControl }: TopBarProps) {
   const { t, lang } = useT();
   const toggleLang = useLangStore((state) => state.toggle);
   const tab = useSelectionStore((state) => state.tab);
@@ -137,12 +138,12 @@ export function TopBar({ meta, network }: TopBarProps) {
   );
 
   return (
-    <header className={`topbar${!isDashboard && searchOpen ? " search-open" : ""}`}>
+    <header className={`topbar${isDashboard ? " topbar-dashboard" : searchOpen ? " search-open" : ""}`}>
       <span className="topbar-logo" aria-hidden>
         <LogoIcon />
       </span>
       <div className="topbar-title">
-        <h1>{t(view.title)}</h1>
+        <h1>{t(isDashboard ? "dashboard.topTitle" : view.title)}</h1>
         {!isDashboard && (
           <p className="num">
             {documentCount !== undefined ? t("common.documents", { n: formatInt(documentCount, lang) }) : t("common.loading")}
@@ -195,6 +196,7 @@ export function TopBar({ meta, network }: TopBarProps) {
         </>
       )}
 
+      {dashboardControl}
       <div className="wide-only">{langSwitch}</div>
 
       <button

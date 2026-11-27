@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { CORE_PERIOD, MIDDLE_PERIOD, macroClusters, type MacroConfiguration } from "../domain/dashboardMacros";
+import { fullNetworkProfiles } from "../domain/dashboardClusterProfiles";
+import { EGO_TERMS } from "../domain/egoNetworks";
 import { CATEGORY_ORDER, categoryColor, categoryLabel, formatInt } from "../domain/vocabulary";
 import { useT, type Lang } from "../i18n";
 import { useTheme } from "../state/theme";
@@ -78,17 +80,17 @@ interface Layout {
 type Stage = 0 | 1 | 2 | 3;
 
 const DASHBOARD_VIEWS = {
-  full: { file: "dashboard.json", label: "dashboard.fullView", title: "dashboard.title", scope: "dashboard.scope" },
-  actors: { file: "actor-dashboard.json", label: "dashboard.actorView", title: "dashboard.actorTitle", scope: "dashboard.actorScope" },
+  full: { file: "dashboard.json", label: "dashboard.fullView" },
+  actors: { file: "actor-dashboard.json", label: "dashboard.actorView" },
   "practice-actors": {
     file: "practice-actor-dashboard.json",
     label: "dashboard.practiceActorView",
-    title: "dashboard.practiceActorTitle",
-    scope: "dashboard.practiceActorScope",
   },
 } as const;
-type DashboardMode = keyof typeof DASHBOARD_VIEWS;
-const VIEW_OPTIONS = Object.keys(DASHBOARD_VIEWS) as DashboardMode[];
+type DashboardNetworkMode = keyof typeof DASHBOARD_VIEWS;
+export type DashboardMode = DashboardNetworkMode | "ego-networks";
+const VIEW_OPTIONS = ["actors", "practice-actors"] as const;
+
 
 const ORANGE = "#ff982d";
 const TAU = 2 * Math.PI;
@@ -105,13 +107,13 @@ function clusterLabel(rank: number): string {
 }
 
 function placeLabels(groups: Group[], width: number, height: number): LabeledGroup[] {
-  const labelHeight = 28;
+  const labelHeight = 36;
+  const labelWidth = 62;
   const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
   const labels: Point[] = [];
 
   return groups.map((group) => {
     const { x, y, radiusX, radiusY } = group;
-    const labelWidth = /^C\d+$/.test(group.label) ? 52 : width < 560 ? 89 : 129;
     const bounds = group.labelBounds ?? { x: 0, y: 0, width, height };
     const candidates = [
       { x, y: y + radiusY + 19 },
@@ -145,48 +147,50 @@ function placeLabels(groups: Group[], width: number, height: number): LabeledGro
 function lateMacroBoxes(width: number, height: number, narrow: boolean): PlotBox[] {
   const inset = 13, gap = 18;
   const span = width - 2 * inset;
-  const core = { x: width / 2 - 78, y: height / 2 - 78, width: 156, height: 156 };
+  const core = { x: width / 2 - 73, y: height / 2 - 73, width: 146, height: 146 };
   if (narrow) return [
     core,
-    { x: inset, y: 15, width: span, height: 602 },
-    { x: inset, y: 635, width: span, height: 590 },
-    { x: inset, y: 1456, width: span, height: 241 },
-    { x: inset, y: 1715, width: span, height: 241 },
-    { x: inset, y: 1974, width: span, height: 241 },
-    { x: inset, y: 2233, width: span, height: 376 },
+    { x: inset, y: 15, width: span, height: 345 },
+    { x: inset, y: 376, width: span, height: 345 },
+    { x: inset, y: 989, width: span, height: 186 },
+    { x: inset, y: 1191, width: span, height: 186 },
+    { x: inset, y: 1393, width: span, height: 186 },
+    { x: inset, y: 1595, width: span, height: 192 },
   ];
   const half = (span - gap) / 2;
   const third = (span - gap * 2) / 3;
   return [
     core,
-    { x: inset, y: 15, width: half, height: 600 },
-    { x: inset + half + gap, y: 15, width: half, height: 600 },
-    { x: inset, y: 838, width: third, height: 310 },
-    { x: inset + third + gap, y: 838, width: third, height: 310 },
-    { x: inset + 2 * (third + gap), y: 838, width: third, height: 310 },
-    { x: inset, y: 1166, width: span, height: 205 },
+    { x: inset, y: 15, width: half, height: 380 },
+    { x: inset + half + gap, y: 15, width: half, height: 380 },
+    { x: inset, y: 642, width: third, height: 165 },
+    { x: inset + third + gap, y: 642, width: third, height: 165 },
+    { x: inset + 2 * (third + gap), y: 642, width: third, height: 165 },
+    { x: inset, y: 824, width: span, height: 190 },
   ];
 }
 
 function macroLayout(snapshot: Snapshot, width: number): Pick<Layout, "positions" | "regions" | "height"> {
-  const narrow = width < 630;
+  const narrow = width < 570;
   const horizontalGap = 18;
   const verticalGap = 18;
   const inset = 13;
   const span = width - inset * 2;
   const late = snapshot.label === CORE_PERIOD;
   const middle = snapshot.label === MIDDLE_PERIOD;
-  const remainderHeight = middle ? (narrow ? 310 : 244) : 91;
-  const height = late ? (narrow ? 2720 : 1480) :
-    (narrow ? 1450 : 935) + remainderHeight - 91;
+  const remainderHeight = middle ? (narrow ? 205 : 168) : 76;
+  const height = late ? (narrow ? 1888 : 1110) :
+    (narrow ? 1140 : 742) + remainderHeight - 76;
   const rowTop = 15;
-  const firstRowHeight = narrow ? 325 : 460;
-  const secondRowHeight = narrow ? 310 : 330;
+  const firstRowHeight = narrow ? 252 : 340;
+  const secondRowHeight = narrow ? 234 : 264;
   const widths = narrow ? [span, span, span, span] :
     [(span - horizontalGap) * .46, (span - horizontalGap) * .54,
      (span - horizontalGap) * .42, (span - horizontalGap) * .58];
   const rows = narrow
-    ? [rowTop, rowTop + 325 + verticalGap, rowTop + 650 + 2 * verticalGap, rowTop + 960 + 3 * verticalGap]
+    ? [rowTop, rowTop + firstRowHeight + verticalGap,
+      rowTop + 2 * (firstRowHeight + verticalGap),
+      rowTop + 2 * firstRowHeight + secondRowHeight + 3 * verticalGap]
     : [rowTop, rowTop, rowTop + firstRowHeight + verticalGap, rowTop + firstRowHeight + verticalGap];
 
   const lateBoxes = late ? lateMacroBoxes(width, height, narrow) : undefined;
@@ -230,28 +234,26 @@ function macroLayout(snapshot: Snapshot, width: number): Pick<Layout, "positions
     } else if (!region.macro) {
       place(region, region.ranks, 22, 16, region.ranks.size === 1 ? 150 : undefined);
     } else {
-      place(region, region.ranks, narrow ? 34 : 47, 80);
+      place(region, region.ranks, narrow ? 30 : 38, 86);
     }
   }
   return { positions, regions, height };
 }
 
-function makeLayout(snapshot: Snapshot, clustered: boolean, width: number, lang: Lang, grouped: boolean): Layout {
-  const categories = CATEGORY_ORDER.filter((category) => snapshot.nodes.some((node) => node[1] === category));
+function makeLayout(snapshot: Snapshot, clustered: boolean, width: number, grouped: boolean): Layout {
   const macro = grouped ? macroLayout(snapshot, width) : null;
-  const height = macro?.height ?? Math.min(930, Math.max(530, width * .82));
-  const marginX = width < 560 ? 31 : 63;
-  const marginY = width < 560 ? 37 : 68;
+  const height = macro?.height ?? Math.min(670, Math.max(420, width * .65));
+  const marginX = width < 560 ? 30 : 44;
+  const marginY = width < 560 ? 35 : 45;
   const coordinates = clustered ? snapshot.clusterPositions : snapshot.categoryPositions;
   const positions = macro?.positions ?? coordinates.map(([x, y]) => ({
     x: marginX + x * (width - 2 * marginX),
     y: marginY + (1 - y) * (height - 2 * marginY),
   }));
-  const count = clustered ? snapshot.blocks : categories.length;
-  const members = Array.from({ length: count }, () => [] as Point[]);
+  if (!clustered) return { positions, groups: [], height, regions: [] };
+  const members = Array.from({ length: snapshot.blocks }, () => [] as Point[]);
   snapshot.nodes.forEach((node, i) => {
-    const group = clustered ? node[2] : categories.findIndex((category) => category === node[1]);
-    members[group].push(positions[i]);
+    members[node[2]].push(positions[i]);
   });
   const groups = members.map((points, i) => {
     const xs = points.map((point) => point.x), ys = points.map((point) => point.y);
@@ -268,9 +270,8 @@ function makeLayout(snapshot: Snapshot, clustered: boolean, width: number, lang:
       x: (left + right) / 2, y: (top + bottom) / 2,
       radiusX: (right - left) / 2 + 11,
       radiusY: (bottom - top) / 2 + 11,
-      label: clustered ? clusterLabel(i) : categoryLabel(categories[i], lang, true),
-      color: clustered ? (region?.color ??
-        "hsl(" + ((i * 137.508 + 154) % 360) + " 67% 63%)") : categoryColor(categories[i]),
+      label: clusterLabel(i),
+      color: region?.color ?? "hsl(" + ((i * 137.508 + 154) % 360) + " 67% 63%)",
     };
   });
   return { positions, groups: placeLabels(groups, width, height), height, regions: macro?.regions ?? [] };
@@ -285,10 +286,11 @@ interface CanvasProps {
   story: BridgeStory | undefined;
   macroStory: MacroBridgeStory | undefined;
   selectedMacro: number | null;
+  selectedCluster: number | null;
   onMacro: (id: number) => void;
   onSelect: (node: number | null) => void;
 }
-function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macroStory, selectedMacro, onMacro, onSelect }: CanvasProps) {
+function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macroStory, selectedMacro, selectedCluster, onMacro, onSelect }: CanvasProps) {
   const theme = useTheme();
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -300,7 +302,7 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
     () => snapshot.nodes.map((node, index) => stage === 3 && (snapshot.macroBetweenness?.scores[index] ?? node[3]) > 0),
     [snapshot, stage],
   );
-  const layout = useMemo(() => makeLayout(snapshot, clustered, Math.max(180, width), lang, grouped), [snapshot, clustered, width, lang, grouped]);
+  const layout = useMemo(() => makeLayout(snapshot, clustered, Math.max(180, width), grouped), [snapshot, clustered, width, grouped]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -335,7 +337,8 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
     const focusedStory = macroStory ?? story;
     const highlightedNodes = new Set(macroStory?.links.map((link) => link.node) ?? story?.terms);
     const link = theme === "oscuro" ? "#a4b6a9" : "#4b6259";
-    const nodeRadius = width < 560 ? 2.15 : 2.8;
+    const nodeRadius = width < 560 ? 3 : 3.5;
+    const visibleInCluster = snapshot.nodes.map((node) => selectedCluster === null || node[2] === selectedCluster);
 
     function draw(now: number) {
       if (!context) return;
@@ -363,7 +366,10 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
       }
       if (clustered) {
         context.globalAlpha = Math.max(0, (progress - .46) / .54) * (theme === "oscuro" ? .17 : .20);
-        for (const group of layout.groups) {
+        for (const [rank, group] of layout.groups.entries()) {
+          if (selectedCluster !== null) {
+            context.globalAlpha = Math.max(0, (progress - .46) / .54) * (rank === selectedCluster ? .32 : .08);
+          }
           context.beginPath();
           context.fillStyle = group.color;
           context.ellipse(group.x, group.y, group.radiusX, group.radiusY, 0, 0, TAU);
@@ -385,7 +391,8 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
         const withinBranch = branch !== undefined && branch === branchByNode.get(target);
         context.strokeStyle = link;
         context.globalAlpha = focusedStory ? (withinBranch ? .36 : .025) :
-          incident ? .54 : clustered && sameBlock ? .20 : .055;
+          incident ? .54 : visibleInCluster[source] && visibleInCluster[target] ?
+            (clustered && sameBlock ? .20 : .055) : .025;
         context.lineWidth = (!focusedStory && incident ? .8 : .38) + .23 * Math.sqrt(weight);
         context.beginPath();
         context.moveTo(from.x, from.y);
@@ -404,15 +411,16 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
       context.globalAlpha = 1;
       points.forEach(({ x, y }, i) => {
         const emphasized = focusedStory?.node === i || highlightedNodes.has(i);
+        context.globalAlpha = visibleInCluster[i] ? 1 : .25;
         context.fillStyle = colors[i];
         context.beginPath();
-        context.arc(x, y, emphasized ? 4.6 : nodeRadius, 0, TAU);
+        context.arc(x, y, emphasized ? 5.5 : nodeRadius, 0, TAU);
         context.fill();
         if (i === selected || highlightedNodes.has(i)) {
           context.strokeStyle = theme === "oscuro" ? "#ffffff" : "#1f2421";
           context.lineWidth = 1.2;
           context.beginPath();
-          context.arc(x, y, 7, 0, TAU);
+          context.arc(x, y, 8, 0, TAU);
           context.stroke();
         }
       });
@@ -420,12 +428,12 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
     }
     draw(started);
     return () => cancelAnimationFrame(frame);
-  }, [snapshot, intermediaries, clustered, grouped, layout, selected, story, macroStory, selectedMacro, theme, width]);
+  }, [snapshot, intermediaries, clustered, grouped, layout, selected, story, macroStory, selectedMacro, selectedCluster, theme, width]);
 
   function inspect(event: PointerEvent<HTMLCanvasElement>) {
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - bounds.left, y = event.clientY - bounds.top;
-    let distance = 10;
+    let distance = 13;
     let closest: number | null = null;
     livePositions.current.forEach((point, i) => {
       const candidate = Math.hypot(x - point.x, y - point.y);
@@ -446,11 +454,12 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
   return (
     <div className="dashboard-graph" ref={hostRef} style={{ height: layout.height }}>
       <canvas ref={canvasRef} role="img" aria-label={snapshot.label} onPointerUp={inspect} />
-      {width > 0 && layout.groups.map((group) => (
+      {width > 0 && layout.groups.map((group, rank) => (
         <span
           key={group.label}
-          data-cluster={clustered ? group.label : undefined}
-          className={clustered ? "dashboard-group dashboard-cluster" : "dashboard-group"}
+          data-cluster={group.label}
+          data-highlighted={selectedCluster === rank ? true : undefined}
+          className="dashboard-cluster"
           style={{ left: group.labelPosition.x, top: group.labelPosition.y }}
         >
           {group.label}
@@ -516,7 +525,7 @@ function NestedFitDetails({ fit }: { fit: NestedFit }) {
   );
 }
 
-function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: DashboardMode }) {
+function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: DashboardNetworkMode }) {
   const { t, lang } = useT();
   const [period, setPeriod] = useState(0);
   const [shown, setShown] = useState(0);
@@ -524,11 +533,13 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
   const [fading, setFading] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [selectedMacro, setSelectedMacro] = useState<number | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<number | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const snapshot = snapshots[shown];
+  const plotRef = useRef<HTMLDivElement>(null);
+  const hasPracticeFinding = view === "practice-actors" && snapshot.label === "2000–2019" && !!snapshot.nestedFit;
   const macros = view === "full" ? macroClusters(snapshot.label) : [];
   const config = DASHBOARD_VIEWS[view];
-  const title = t(config.title);
   const practiceCount = view === "practice-actors" ? snapshot.nodes.filter((node) => node[1] === "PRAC").length : 0;
   const nodeCount = view === "practice-actors" ? t("dashboard.practiceActorCounts", {
     practices: formatInt(practiceCount, lang),
@@ -548,21 +559,59 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
   const score = selected === null ? 0 : (macroMetric?.scores[selected] ?? node?.[3] ?? 0);
   const profile = hasMacros && stage >= 2 ? macros.find((macro) => macro.id === selectedMacro) : undefined;
   const profileRanks = new Set(profile?.blocks.map((block) => block.rank));
-  const profileSizes = new Map<number, number>();
-  if (profile) {
-    for (const item of snapshot.nodes) {
-      if (profileRanks.has(item[2])) profileSizes.set(item[2], (profileSizes.get(item[2]) ?? 0) + 1);
+  const counts = useMemo(() => {
+    const byCluster = Array<number>(snapshot.blocks).fill(0);
+    const byCategory = new Map<string, number>();
+    for (const [, category, rank] of snapshot.nodes) {
+      byCluster[rank]++;
+      byCategory.set(category, (byCategory.get(category) ?? 0) + 1);
     }
-  }
+    return { byCluster, byCategory };
+  }, [snapshot]);
+  const largestCluster = Math.max(...counts.byCluster);
+  const visibleCategories = CATEGORY_ORDER.filter((category) => counts.byCategory.has(category));
+  const activeCluster = selectedCluster ?? (node && stage > 0 ? node[2] : null);
+  const periodProfiles = view === "full" ? fullNetworkProfiles[snapshot.label] : undefined;
+  const clusterProfile = selectedCluster === null ? undefined : periodProfiles?.[selectedCluster];
+  const profileTerms = clusterProfile?.terms
+    .map((name) => snapshot.nodes.find((node) => node[0] === name && node[2] === selectedCluster))
+    .filter((node) => node !== undefined) ?? [];
+  const categoryCounts = (
+    <ul className="dashboard-category-counts">
+      {visibleCategories.map((category) => (
+        <li key={category} className="dashboard-count-row">
+          <span><i aria-hidden="true" style={{ backgroundColor: categoryColor(category) }} />{categoryLabel(category, lang, true)}</span>
+          <strong>{formatInt(counts.byCategory.get(category) ?? 0, lang)}</strong>
+        </li>
+      ))}
+    </ul>
+  );
 
   function selectNode(index: number | null) {
+    setSelectedCluster(null);
     setSelectedMacro(null);
     setSelected(index);
   }
 
   function selectMacro(id: number) {
+    setSelectedCluster(null);
     setSelected(null);
     setSelectedMacro((current) => current === id ? null : id);
+  }
+
+  function selectCluster(rank: number) {
+    setSelected(null);
+    setSelectedMacro(null);
+    setSelectedCluster(selectedCluster === rank ? null : rank);
+  }
+
+  function showPracticeFinding() {
+    const rank = 1;
+    if (stage === 0) setStep(1);
+    selectCluster(rank);
+    if (selectedCluster !== rank && window.matchMedia("(max-width: 1023px)").matches) {
+      plotRef.current?.scrollIntoView({ block: "start", behavior: motionPreference() ? "instant" : "smooth" });
+    }
   }
 
   const goTo = useCallback((next: number) => {
@@ -571,6 +620,7 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
     if (motionPreference()) {
       setSelected(null);
       setSelectedMacro(null);
+      setSelectedCluster(null);
       setShown(next);
       setFading(false);
       return;
@@ -579,6 +629,7 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
     timer.current = window.setTimeout(() => {
       setSelected(null);
       setSelectedMacro(null);
+      setSelectedCluster(null);
       setShown(next);
       setFading(false);
     }, 180);
@@ -587,40 +638,7 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
   return (
-    <section className="card dashboard-story" aria-label={title}>
-      <header className="dashboard-header">
-        <div>
-          <h2>{title}</h2>
-          <p>{t(config.scope)}</p>
-        </div>
-        <button type="button" className="dashboard-action" onClick={() => {
-          setStep(nextStage);
-          setSelected(null);
-          setSelectedMacro(null);
-        }}>
-          {t(nextLabel)}
-        </button>
-      </header>
-      <div className="dashboard-controls">
-        <div className="dashboard-timeline" role="group" aria-label={t("top.period")}>
-          {snapshots.map((item, index) => (
-            <button
-              key={item.label}
-              type="button"
-              aria-pressed={index === period}
-              onClick={() => { if (index !== period) goTo(index); }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="dashboard-legend">
-        {CATEGORY_ORDER.filter((category) => snapshot.nodes.some((item) => item[1] === category)).map((category) => (
-          <span key={category}><i aria-hidden="true" style={{ backgroundColor: categoryColor(category) }} />{categoryLabel(category, lang, true)}</span>
-        ))}
-        {stage === 3 && <span><i aria-hidden="true" style={{ backgroundColor: ORANGE }} />{t(macroMetric ? "dashboard.macroPositiveBridges" : "dashboard.positiveBridges")}</span>}
-      </div>
+    <section className="card dashboard-story" aria-label={t(config.label)}>
       {stage === 3 && (
         <div className="dashboard-stories" role="group" aria-label={t("dashboard.examples")}>
           <span>{t("dashboard.examples")}</span>
@@ -632,82 +650,265 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
           ))}
         </div>
       )}
-      <div className={"dashboard-snapshot" + (fading ? " is-fading" : "")} data-period={snapshot.label} data-stage={stage}>
-        <div className="dashboard-status num" aria-live="polite">
-          <strong>{snapshot.label}</strong>
-          <span>{t(macroMetric ? "dashboard.macroBridgeScore" : STAGES[stage])}</span>
-          <span>{t("common.documents", { n: formatInt(snapshot.documents, lang) })} · {nodeCount} · {formatInt(snapshot.edges.length, lang)} {t("dashboard.edges")}</span>
-          {snapshot.isolatedActors !== undefined && <span>{t("dashboard.actorIsolates", { n: formatInt(snapshot.isolatedActors, lang) })}</span>}
-          {snapshot.isolatedNodes !== undefined && <span>{t("dashboard.isolatedNodes", { n: formatInt(snapshot.isolatedNodes, lang) })}</span>}
-        </div>
-        {stage > 0 && snapshot.nestedFit && <NestedFitDetails key={snapshot.label} fit={snapshot.nestedFit} />}
-        <DashboardGraph snapshot={snapshot} stage={stage} grouped={hasMacros && stage >= 2} lang={lang} selected={selected} story={story} macroStory={macroStory}
-          selectedMacro={selectedMacro} onMacro={selectMacro} onSelect={selectNode} />
-        {hasMacros && stage >= 2 && unassigned && <p className="dashboard-unassigned">{t("dashboard.unassigned", { cluster: unassigned })}</p>}
-      </div>
-      <div className="dashboard-detail" aria-live="polite">
-        {profile ? (
-          <div className="dashboard-story-note dashboard-macro-profile" style={{ borderColor: profile.color }}>
-            <button type="button" className="dashboard-story-close" onClick={() => setSelectedMacro(null)}
-              aria-label={t("common.close")}>×</button>
-            <strong>{profile.name[lang]}</strong>
-            <span>{t("dashboard.macroTotal", { blocks: profile.blocks.length,
-              nodes: formatInt([...profileSizes.values()].reduce((sum, size) => sum + size, 0), lang) })}</span>
-            {profile.description?.[lang].map((paragraph) => (
-              <p className="dashboard-profile-description" key={paragraph}>{paragraph}</p>
+      <div className={"dashboard-workbench" + (periodProfiles ? " has-cluster-profiles" : "") + (fading ? " is-fading" : "")}>
+        <div className="dashboard-plot-column">
+          <div className="dashboard-snapshot" ref={plotRef} data-period={snapshot.label} data-stage={stage}>
+            <div className="dashboard-snapshot-header">
+              <div className="dashboard-status num" aria-live="polite">
+                <strong>{snapshot.label}</strong>
+                <span>{t(macroMetric ? "dashboard.macroBridgeScore" : STAGES[stage])}</span>
+                <span>{t("common.documents", { n: formatInt(snapshot.documents, lang) })} · {nodeCount} · {formatInt(snapshot.edges.length, lang)} {t("dashboard.edges")}</span>
+                {snapshot.isolatedActors !== undefined && <span>{t("dashboard.actorIsolates", { n: formatInt(snapshot.isolatedActors, lang) })}</span>}
+                {snapshot.isolatedNodes !== undefined && <span>{t("dashboard.isolatedNodes", { n: formatInt(snapshot.isolatedNodes, lang) })}</span>}
+              </div>
+              <button type="button" className="dashboard-action" onClick={() => {
+                setStep(nextStage);
+                setSelectedCluster(null);
+                setSelected(null);
+                setSelectedMacro(null);
+              }}>
+                {t(nextLabel)}
+              </button>
+            </div>
+            {stage > 0 && snapshot.nestedFit && <NestedFitDetails key={snapshot.label} fit={snapshot.nestedFit} />}
+            <DashboardGraph snapshot={snapshot} stage={stage} grouped={hasMacros && stage >= 2} lang={lang} selected={selected} story={story} macroStory={macroStory}
+              selectedMacro={selectedMacro} selectedCluster={selectedCluster} onMacro={selectMacro} onSelect={selectNode} />
+            {hasMacros && stage >= 2 && unassigned && <p className="dashboard-unassigned">{t("dashboard.unassigned", { cluster: unassigned })}</p>}
+          </div>
+          <div className="dashboard-timeline" role="group" aria-label={t("top.period")}>
+            {snapshots.map((item, index) => (
+              <button
+                key={item.label}
+                type="button"
+                aria-label={item.label}
+                aria-pressed={index === period}
+                onClick={() => { if (index !== period) goTo(index); }}
+              >
+                {item.label.replace(/–\d{2}(\d{2})$/, "-$1")}
+              </button>
             ))}
-            <ul>
-              {profile.blocks.map((block) => (
-                <li key={block.rank}>
-                  <b>{clusterLabel(block.rank)}</b>{block.name[lang] && " " + block.name[lang]}
-                  <span> · {formatInt(profileSizes.get(block.rank) ?? 0, lang)} {t("dashboard.nodes")}</span>
-                </li>
-              ))}
-            </ul>
           </div>
-        ) : node ? (
-          <><strong>{node[0]}</strong><span>{categoryLabel(node[1], lang)}</span>
-          {stage > 0 && <span>{clusterLabel(node[2])}</span>}
-          {stage === 3 && <span>{t(macroMetric ? "dashboard.macroBridgeScore" : "dashboard.score")} {new Intl.NumberFormat(lang, { maximumSignificantDigits: 4 }).format(score)}</span>}</>
-        ) : t(stage === 3 ? (macroMetric ? "dashboard.macroBridgeHelp" : "dashboard.bridgeHelp") : stage === 2 ? "dashboard.macroHint" : "dashboard.inspect")}
-        {macroStory && (
-          <div className="dashboard-story-note dashboard-macro-profile">
-            <button type="button" className="dashboard-story-close" onClick={() => selectNode(null)}
-              aria-label={t("common.close")}>×</button>
-            <strong>{t("dashboard.macroBridgeLinks", { count: macroStory.links.length })}</strong>
-            <ul className="dashboard-macro-bridge-links">
-              {macroStory.links.map((link) => {
-                const macro = macros.find((item) => item.id === link.macro);
-                return (
-                  <li key={link.node}>
-                    <span>{macro?.name[lang]}</span>
-                    <b>{snapshot.nodes[link.node][0]}</b>
-                    <span> · {t(link.documents === 1 ? "common.docOne" : "common.docs", { n: link.documents })}</span>
-                  </li>
-                );
-              })}
-            </ul>
+        </div>
+        <aside className="dashboard-inspector" aria-label={t("dashboard.inspector")}>
+          {hasPracticeFinding && (
+            <section className="dashboard-finding" aria-labelledby="dashboard-practice-finding-title">
+              <h3 id="dashboard-practice-finding-title">{t("dashboard.practiceFindingTitle")}</h3>
+              <p>{t("dashboard.practiceFindingEvidence")}</p>
+              <p>{t("dashboard.practiceFindingReading")}</p>
+              <button type="button" className="dashboard-finding-action" aria-pressed={selectedCluster === 1}
+                onClick={showPracticeFinding}>{t("dashboard.practiceFindingShow")}</button>
+            </section>
+          )}
+          <div className="dashboard-detail" aria-live="polite">
+            {profile ? (
+              <div className="dashboard-story-note dashboard-macro-profile" style={{ borderColor: profile.color }}>
+                <button type="button" className="dashboard-story-close" onClick={() => setSelectedMacro(null)}
+                  aria-label={t("common.close")}>×</button>
+                <strong>{profile.name[lang]}</strong>
+                <span>{t("dashboard.macroTotal", { blocks: profile.blocks.length,
+                  nodes: formatInt([...profileRanks].reduce((sum, rank) => sum + counts.byCluster[rank], 0), lang) })}</span>
+                {profile.description?.[lang].map((paragraph) => (
+                  <p className="dashboard-profile-description" key={paragraph}>{paragraph}</p>
+                ))}
+                <ul>
+                  {profile.blocks.map((block) => (
+                    <li key={block.rank}>
+                      <b>{clusterLabel(block.rank)}</b>{block.name[lang] && " " + block.name[lang]}
+                      <span> · {formatInt(counts.byCluster[block.rank], lang)} {t("dashboard.nodes")}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : node ? (
+              <div className="dashboard-node-card" style={{ borderInlineStartColor: categoryColor(node[1]) }}>
+                {!story && !macroStory && (
+                  <button type="button" className="dashboard-story-close" onClick={() => selectNode(null)}
+                    aria-label={t("dashboard.clearNode")}>×</button>
+                )}
+                <span className="dashboard-node-eyebrow">{t("dashboard.selectedNode")}</span>
+                <strong className="dashboard-node-name">{node[0]}</strong>
+                <div className="dashboard-node-meta">
+                  <span><i aria-hidden="true" style={{ backgroundColor: categoryColor(node[1]) }} />{categoryLabel(node[1], lang)}</span>
+                  {stage > 0 && <span>{clusterLabel(node[2])}</span>}
+                </div>
+                {stage === 3 && <span>{t(macroMetric ? "dashboard.macroBridgeScore" : "dashboard.score")} {new Intl.NumberFormat(lang, { maximumSignificantDigits: 4 }).format(score)}</span>}
+              </div>
+            ) : clusterProfile && selectedCluster !== null ? (
+              <div className="dashboard-node-card dashboard-cluster-profile">
+                <button type="button" className="dashboard-story-close" onClick={() => selectCluster(selectedCluster)}
+                  aria-label={t("common.close")}>×</button>
+                <h3 className="dashboard-node-name">{clusterLabel(selectedCluster)} · {clusterProfile.title[lang]}</h3>
+                <p className="dashboard-cluster-question">{t("dashboard.clusterThemeQuestion")}</p>
+                <p className="dashboard-cluster-answer">{clusterProfile.description[lang]}</p>
+                <h4 className="dashboard-cluster-terms-title">
+                  {t(profileTerms.length === counts.byCluster[selectedCluster] ? "dashboard.clusterAllNodes" : "dashboard.clusterTopNodes", {
+                    count: profileTerms.length, cluster: clusterLabel(selectedCluster),
+                  })}
+                </h4>
+                <ul className="dashboard-cluster-terms">
+                  {profileTerms.map(([name, category]) => {
+                    const color = categoryColor(category);
+                    return <li key={name} data-category={category} title={categoryLabel(category, lang)}
+                      style={{ borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 22%, var(--surf))` }}>
+                      {name}
+                    </li>;
+                  })}
+                </ul>
+                <p className="dashboard-cluster-question">{t("dashboard.clusterTerritoryQuestion")}</p>
+                <p className="dashboard-cluster-answer">{clusterProfile.territorialReading[lang]}</p>
+              </div>
+            ) : selectedCluster !== null ? (
+              <><strong>{clusterLabel(selectedCluster)}</strong><span>{t("dashboard.nodeTotal", {
+                n: formatInt(counts.byCluster[selectedCluster], lang),
+              })}</span></>
+            ) : (
+              <div className="dashboard-node-placeholder">
+                <strong>{t("dashboard.nodeDetails")}</strong>
+                <p>{t(stage === 3 ? (macroMetric ? "dashboard.macroBridgeHelp" : "dashboard.bridgeHelp") : stage === 2 ? "dashboard.macroHint" : "dashboard.inspect")}</p>
+              </div>
+            )}
+            {macroStory && (
+              <div className="dashboard-story-note dashboard-macro-profile">
+                <button type="button" className="dashboard-story-close" onClick={() => selectNode(null)}
+                  aria-label={t("common.close")}>×</button>
+                <strong>{t("dashboard.macroBridgeLinks", { count: macroStory.links.length })}</strong>
+                <ul className="dashboard-macro-bridge-links">
+                  {macroStory.links.map((link) => {
+                    const macro = macros.find((item) => item.id === link.macro);
+                    return (
+                      <li key={link.node}>
+                        <span>{macro?.name[lang]}</span>
+                        <b>{snapshot.nodes[link.node][0]}</b>
+                        <span> · {t(link.documents === 1 ? "common.docOne" : "common.docs", { n: link.documents })}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+            {story && (
+              <div className="dashboard-story-note">
+                <button type="button" className="dashboard-story-close" onClick={() => setSelected(null)}
+                  aria-label={t("common.close")}>×</button>
+                <strong>{snapshot.nodes[story.terms[0]][0]} → {node?.[0]} → {snapshot.nodes[story.terms[1]][0]}</strong>
+                <span>{t("dashboard.storySplit", {
+                  first: story.branches[0].length, second: story.branches[1].length,
+                })}</span>
+                <span>{t("dashboard.storyEvidence", { first: story.documents[0], second: story.documents[1] })}</span>
+              </div>
+            )}
           </div>
-        )}
-        {story && (
-          <div className="dashboard-story-note">
-            <button type="button" className="dashboard-story-close" onClick={() => setSelected(null)}
-              aria-label={t("common.close")}>×</button>
-            <strong>{snapshot.nodes[story.terms[0]][0]} → {node?.[0]} → {snapshot.nodes[story.terms[1]][0]}</strong>
-            <span>{t("dashboard.storySplit", {
-              first: story.branches[0].length, second: story.branches[1].length,
-            })}</span>
-            <span>{t("dashboard.storyEvidence", { first: story.documents[0], second: story.documents[1] })}</span>
-          </div>
-        )}
+          {stage > 0 ? (
+            <details className="dashboard-cluster-key" open>
+              <summary>
+                <span className="dashboard-cluster-summary">
+                  <span>{t("dashboard.clusters")}</span>
+                  <span>{t("dashboard.nodeTotal", { n: formatInt(snapshot.nodes.length, lang) })}</span>
+                </span>
+              </summary>
+              <div className="dashboard-cluster-list" role="group" aria-label={t("dashboard.exploreCounts")}>
+                {counts.byCluster.map((size, rank) => (
+                  <button key={rank} type="button" className="dashboard-count-row"
+                    data-active={activeCluster === rank ? true : undefined}
+                    aria-pressed={selectedCluster === rank}
+                    onClick={() => selectCluster(rank)}>
+                    <span>{clusterLabel(rank)}</span>
+                    <strong aria-label={t("dashboard.nodeTotal", { n: formatInt(size, lang) })}>{formatInt(size, lang)}</strong>
+                    <i aria-hidden="true" style={{ width: (size / largestCluster * 100) + "%" }} />
+                  </button>
+                ))}
+              </div>
+            </details>
+          ) : (
+            <div className="dashboard-counts">
+              <header>
+                <h3>{t("dashboard.categories")}</h3>
+                <span>{t("dashboard.nodeTotal", { n: formatInt(snapshot.nodes.length, lang) })}</span>
+              </header>
+              {categoryCounts}
+            </div>
+          )}
+          {stage > 0 && (
+            <details className="dashboard-category-key" key={snapshot.label}>
+              <summary>{t("dashboard.categories")}</summary>
+              {categoryCounts}
+            </details>
+          )}
+          {stage === 3 && (
+            <span className="dashboard-bridge-key">
+              <i aria-hidden="true" style={{ backgroundColor: ORANGE }} />
+              {t(macroMetric ? "dashboard.macroPositiveBridges" : "dashboard.positiveBridges")}
+            </span>
+          )}
+        </aside>
       </div>
     </section>
   );
 }
 
-export function DashboardView() {
+export function DashboardViewPicker({ view, onChange }: { view: DashboardMode; onChange: (mode: DashboardMode) => void }) {
   const { t } = useT();
-  const [view, setView] = useState<DashboardMode>("full");
+  const [open, setOpen] = useState(false);
+  const menu = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function closeOutside(event: globalThis.PointerEvent) {
+      if (event.target instanceof Node && !menu.current?.contains(event.target)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [open]);
+
+  function choose(mode: DashboardMode) {
+    setOpen(false);
+    onChange(mode);
+    trigger.current?.focus();
+  }
+
+  return (
+    <div className="dashboard-view-picker" role="group" aria-label={t("dashboard.viewPicker")}>
+      <div ref={menu} className="dashboard-full-menu" onKeyDown={(event) => {
+        if (event.key === "Escape" && open) {
+          event.stopPropagation();
+          setOpen(false);
+          trigger.current?.focus();
+        }
+      }}>
+        <button ref={trigger} type="button" className="dashboard-full-trigger"
+          data-active={view === "full" || view === "ego-networks" ? true : undefined}
+          aria-expanded={open} aria-controls={open ? "dashboard-full-options" : undefined}
+          onClick={() => setOpen(!open)}>
+          {t("dashboard.fullView")}
+          <span className="dashboard-full-chevron" aria-hidden="true" />
+        </button>
+        {open && (
+          <div className="dashboard-full-menu-options" id="dashboard-full-options">
+            <button type="button" aria-pressed={view === "full"} onClick={() => choose("full")}>
+              {t("dashboard.fullView")}
+            </button>
+            <button type="button" aria-pressed={view === "ego-networks"} onClick={() => choose("ego-networks")}>
+              <span>{t("ego.title")}</span>
+              <small>{EGO_TERMS.join(" · ")}</small>
+            </button>
+          </div>
+        )}
+      </div>
+      {VIEW_OPTIONS.map((option) => (
+        <button key={option} type="button" aria-pressed={view === option} onClick={() => {
+          setOpen(false);
+          onChange(option);
+        }}>
+          {t(DASHBOARD_VIEWS[option].label)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function DashboardNetwork({ view }: { view: DashboardNetworkMode }) {
+  const { t } = useT();
   const data = useQuery({
     queryKey: ["dashboard", "lognormal", view],
     queryFn: async ({ signal }): Promise<Snapshot[]> => {
@@ -719,14 +920,7 @@ export function DashboardView() {
     staleTime: Infinity,
   });
   return (
-    <main className="dashboard-view scroll-view">
-      <div className="dashboard-view-picker" role="group" aria-label={t("dashboard.viewPicker")}>
-        {VIEW_OPTIONS.map((option) => (
-          <button key={option} type="button" aria-pressed={view === option} onClick={() => setView(option)}>
-            {t(DASHBOARD_VIEWS[option].label)}
-          </button>
-        ))}
-      </div>
+    <>
       {view === "full" && <div className="card dashboard-intro" aria-hidden="true" />}
       {data.data ? <DashboardStory key={view} snapshots={data.data} view={view} /> : data.isError ? (
         <div className="notice error">
@@ -734,7 +928,17 @@ export function DashboardView() {
           <button type="button" onClick={() => void data.refetch()}>{t("dashboard.retry")}</button>
         </div>
       ) : <Loader label={t("common.loading")} size={52} />}
-      {view === "full" && <EgoNetworksView />}
+    </>
+  );
+}
+
+export function DashboardView({ view }: { view: DashboardMode }) {
+  const viewport = useRef<HTMLElement>(null);
+  useEffect(() => { viewport.current?.scrollTo(0, 0); }, [view]);
+
+  return (
+    <main className="dashboard-view scroll-view" ref={viewport}>
+      {view === "ego-networks" ? <EgoNetworksView /> : <DashboardNetwork view={view} />}
     </main>
   );
 }

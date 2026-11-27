@@ -305,12 +305,8 @@ export function EgoNetworksView() {
   return (
     <section className="card dashboard-story dashboard-ego-section" aria-labelledby="dashboard-ego-title">
       <header className="dashboard-header">
-        <div>
-          <h2 id="dashboard-ego-title">THREE PRACTICES IN FOCUS</h2>
-          <p>{t("ego.subtitle")}</p>
-        </div>
+        <h2 id="dashboard-ego-title">{t("ego.title")}</h2>
       </header>
-      <p className="dashboard-ego-instructions">{t("ego.instructions")}</p>
       <div className="dashboard-legend">
         {CATEGORY_ORDER.filter((category) => category !== "INFRA").map((category) => (
           <span key={category}><i aria-hidden="true" style={{ backgroundColor: categoryColor(category) }} />{categoryLabel(category, lang, true)}</span>

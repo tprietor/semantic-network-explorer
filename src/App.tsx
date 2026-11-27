@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCompare, useDebouncedFilters, useMeta, useNetwork } from "./api/queries";
 import { DetailsPanel } from "./components/DetailsPanel";
 import { EntityTable } from "./components/EntityTable";
@@ -6,7 +6,7 @@ import EvolutionView from "./components/EvolutionView";
 import { FilterPanel } from "./components/FilterPanel";
 import { NetworkView } from "./components/NetworkView";
 import { BottomTabs, NavRail, TopBar } from "./components/Shell";
-import { DashboardView } from "./components/DashboardView";
+import { DashboardView, DashboardViewPicker, type DashboardMode } from "./components/DashboardView";
 import { TooltipLayer } from "./components/TooltipLayer";
 import { errorText, useT } from "./i18n";
 import { filterIssues, useFilterStore } from "./state/filters";
@@ -22,6 +22,7 @@ export default function App() {
   const filters = useFilterStore((state) => state.filters);
   const stableFilters = useDebouncedFilters(filters);
   const tab = useSelectionStore((state) => state.tab);
+  const [dashboardMode, setDashboardMode] = useState<DashboardMode>("full");
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -48,10 +49,12 @@ export default function App() {
     <div className="rs">
       <NavRail />
       <div className="workspace">
-        <TopBar meta={meta.data} network={network.data} />
+        <TopBar meta={meta.data} network={network.data} dashboardControl={
+          isDashboard ? <DashboardViewPicker view={dashboardMode} onChange={setDashboardMode} /> : undefined
+        } />
         {!isDashboard && meta.error instanceof Error && !meta.data && <div className="notice error">{errorText(meta.error, t)}</div>}
         <div className="content">
-          {isDashboard && <DashboardView />}
+          {isDashboard && <DashboardView view={dashboardMode} />}
           {tab === "network" && (
             <>
               <FilterPanel meta={meta.data} network={network.data} />
