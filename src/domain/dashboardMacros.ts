@@ -27,7 +27,7 @@ const block = (number: number, es: string, en: string): MacroBlock => ({
 const EARLY_MACROS: MacroConfiguration[] = [
   {
     id: 1,
-    name: {"es": "Lo que viaja de finca en finca", "en": "What travels from farm to farm"},
+    name: {"es": "Sistemas Agroforestales Consolidados y Soporte Técnico", "en": "Established Agroforestry Systems and Technical Support"},
     color: "#70ae93",
     blocks: [
       block(1, "La cooperativa y los productores", "The cooperative and its producers"),
@@ -62,7 +62,7 @@ const EARLY_MACROS: MacroConfiguration[] = [
   },
   {
     id: 2,
-    name: {"es": "La sombra que se cultiva", "en": "Growing shade"},
+    name: {"es": "Iniciativas Locales y Tradicionales Emergentes", "en": "Emerging Local and Traditional Initiatives"},
     color: "#93aa67",
     blocks: [
       block(2, "Cacao y manejo de sombra", "Cacao and shade management"),
@@ -87,7 +87,7 @@ const EARLY_MACROS: MacroConfiguration[] = [
   },
   {
     id: 3,
-    name: {"es": "Los caminos del poblamiento", "en": "Routes of settlement"},
+    name: {"es": "Sistemas Productivos Mixtos en Tensión", "en": "Mixed Production Systems in Tension"},
     color: "#8e9fbf",
     blocks: [
       block(8, "Fronteras de Pará", "Settlement frontiers in Pará"),
@@ -115,7 +115,7 @@ const EARLY_MACROS: MacroConfiguration[] = [
   },
   {
     id: 4,
-    name: {"es": "Del bosque al mercado", "en": "From forest to market"},
+    name: {"es": "Bionegocios, Concesiones y Mercados del Bosque", "en": "Bio-based Businesses, Concessions and Forest Markets"},
     color: "#c29f70",
     blocks: [
       block(4, "Extracción, cultivos y ganado", "Extraction, crops and cattle"),
@@ -140,7 +140,7 @@ const EARLY_MACROS: MacroConfiguration[] = [
   },
   {
     id: 5,
-    name: {"es": "La huella del oro en el bosque", "en": "Gold’s footprint in the forest"},
+    name: {"es": "Régimen Extractivo y Lock-ins", "en": "Extractive Regime and Lock-ins"},
     color: "#c48779",
     blocks: [
       block(7, "Pérdida de cobertura forestal", "Forest cover loss"),
