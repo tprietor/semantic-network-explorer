@@ -1,6 +1,12 @@
+import stories from "../domain/practiceStories.json";
+import additionalReadings from "../domain/conservationMonocultureReadings.json";
+import additionalPassages from "../domain/conservationMonoculturePassages.json";
+import examples from "../domain/deforestationPassages.json";
+import { deforestationReadings } from "../domain/deforestationReadings";
+import { categoryDiversity, diversityFormat } from "../domain/diversity";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { EGO_TERMS, edgeKey, ringPositions, visibleEgo, type EgoData, type EgoEdge, type EgoRings, type EgoStage, type EgoTerm, type Point } from "../domain/egoNetworks";
+import { EGO_TERMS, edgeKey, egoRoute, ringPositions, visibleEgo, type EgoData, type EgoEdge, type EgoRings, type EgoStage, type EgoTerm, type Point } from "../domain/egoNetworks";
 import { CATEGORY_ORDER, categoryColor, categoryLabel, formatInt } from "../domain/vocabulary";
 import { useT } from "../i18n";
 import { useTheme } from "../state/theme";
@@ -20,7 +26,6 @@ interface Transition {
   duration: number;
 }
 
-const STAGES = ["ego.core", "ego.direct", "ego.neighborLinks", "ego.secondRing", "ego.allLinks"] as const;
 const ACTIONS = ["ego.addDirect", "ego.addNeighborLinks", "ego.addSecondRing", "ego.addAllLinks", "ego.inspect"] as const;
 const TAU = 2 * Math.PI;
 
@@ -75,7 +80,13 @@ function segmentDistance(at: Point, left: Point, right: Point): number {
   return Math.hypot(at.x - left.x - ratio * dx, at.y - left.y - ratio * dy);
 }
 
+type Reading = { category: string; terms: string[]; text: Record<"es" | "en", string> };
+type Passage = { document_name: string; text: string; year: number | null; sentence_id: string };
+const readings: Record<EgoTerm, Record<string, Reading[]>> = { deforestation: deforestationReadings, ...additionalReadings };
+const passages: Record<EgoTerm, Record<string, Record<string, Passage>>> = { deforestation: examples, ...additionalPassages };
+
 interface CanvasProps {
+  featured: ReadonlySet<number>;
   view: EgoView;
   positions: Map<number, Point>[];
   data: EgoData;
@@ -83,8 +94,11 @@ interface CanvasProps {
   selection: Selection;
   onSelect: (selection: Selection) => void;
   label: string;
+  evidenceLabel: { id: number; text: string } | null;
+  route: number[];
+  arrivals: ReadonlySet<number>;
 }
-function EgoCanvas({ view, positions, data, core, selection, onSelect, label }: CanvasProps) {
+function EgoCanvas({ featured, evidenceLabel, route, arrivals, view, positions, data, core, selection, onSelect, label }: CanvasProps) {
   const theme = useTheme();
   const canvas = useRef<HTMLCanvasElement>(null);
   const transition = useRef<Transition | null>(null);
@@ -139,17 +153,22 @@ function EgoCanvas({ view, positions, data, core, selection, onSelect, label }: 
         if (point.opacity > .005) displayed.set(id, { ...pixel(point, width, height), opacity: point.opacity });
       }
       context.clearRect(0, 0, width, height);
-      for (const active of [false, true]) for (const [key, motion] of current.edges) {
-        if (highlighted.has(key) !== active) continue;
+      // Draw annotated spokes over ordinary edges and preserve the user's selection on top.
+      for (const priority of [0, 1, 2]) for (const [key, motion] of current.edges) {
+        const active = highlighted.has(key);
         const [a, b, weight] = motion.edge;
         const left = displayed.get(a), right = displayed.get(b);
         if (!left || !right) continue;
         const opacity = line(motion.from, motion.to, t) * Math.min(left.opacity, right.opacity);
         const direct = a === core || b === core;
-        const alpha = active ? .9 : highlighted.size ? .045 : direct ? .34 : .14;
-        context.globalAlpha = alpha * opacity;
-        context.strokeStyle = active ? emphasis : stroke;
-        context.lineWidth = .37 + .42 * Math.sqrt(weight) + (active ? .48 : 0);
+        const annotated = direct && featured.has(a === core ? b : a);
+        if ((active ? 2 : annotated ? 1 : 0) !== priority) continue;
+        const incoming = annotated && arrivals.has(a === core ? b : a);
+        const reveal = incoming ? Math.max(0, 2 * t - 1) : 1;
+        const alpha = active ? .9 : highlighted.size ? .045 : annotated ? .88 : direct ? .34 : .14;
+        context.globalAlpha = alpha * opacity * reveal;
+        context.strokeStyle = active ? emphasis : annotated ? categoryColor(data.nodes[a === core ? b : a][1]) : stroke;
+        context.lineWidth = .37 + .42 * Math.sqrt(weight) + (active ? 1.2 : annotated ? .95 : 0);
         context.beginPath();
         context.moveTo(left.x, left.y);
         context.lineTo(right.x, right.y);
@@ -163,7 +182,16 @@ function EgoCanvas({ view, positions, data, core, selection, onSelect, label }: 
         context.beginPath();
         context.arc(point.x, point.y, active ? 6 : nodeRadius, 0, TAU);
         context.fill();
+        if (featured.has(id)) {
+          context.beginPath();
+          context.arc(point.x, point.y, 7, 0, TAU);
+          context.strokeStyle = categoryColor(data.nodes[id][1]);
+          context.lineWidth = 1.25;
+          context.stroke();
+        }
         if (active) {
+          context.beginPath();
+          context.arc(point.x, point.y, 6, 0, TAU);
           context.strokeStyle = emphasis;
           context.lineWidth = 1.6;
           context.stroke();
@@ -178,7 +206,7 @@ function EgoCanvas({ view, positions, data, core, selection, onSelect, label }: 
     }
     draw(now);
     return () => cancelAnimationFrame(frame);
-  }, [view, positions, data, core, selection, theme, width, height]);
+  }, [featured, arrivals, view, positions, data, core, selection, theme, width, height]);
 
   function inspect(event: PointerEvent<HTMLCanvasElement>) {
     const current = transition.current;
@@ -207,7 +235,25 @@ function EgoCanvas({ view, positions, data, core, selection, onSelect, label }: 
     onSelect(edge ? { edge } : null);
   }
 
-  return <canvas ref={canvas} role="img" aria-label={label} onPointerUp={inspect} />;
+  // Anchor the callout to the featured spoke with the most sentence evidence.
+  let callout: number | undefined;
+  let mostSentences = -1;
+  for (const id of featured) {
+    const key = edgeKey(core, id);
+    const edge = view.edges.get(key);
+    if (!edge || (selection && ("node" in selection ? selection.node !== id : selection.edge !== key))) continue;
+    if (edge[4] > mostSentences) { callout = id; mostSentences = edge[4]; }
+  }
+  if (!selection && evidenceLabel) callout = evidenceLabel.id;
+  if (route.length) callout = route[route.length - 1];
+  const layer = callout === undefined ? undefined : view.distances.get(callout);
+  const anchor = callout === undefined || !layer ? undefined : positions[layer - 1].get(callout);
+  return <>
+    <canvas ref={canvas} role="img" aria-label={label} onPointerUp={inspect} />
+    {anchor && callout !== undefined && width > 0 && <span key={callout} className="ego-spoke-label"
+      style={{ left: (.5 + .46 * anchor.x) * width, top: (.5 + .45 * anchor.y) * height + (anchor.y < 0 ? -16 : 16),
+        borderColor: categoryColor(data.nodes[callout][1]) }}>{data.nodes[callout][0]}{evidenceLabel?.id === callout && <small>{evidenceLabel.text}</small>}</span>}
+  </>;
 }
 
 function EgoPanel({ term, rings, data }: { term: EgoTerm; rings: EgoRings[]; data: EgoData }) {
@@ -217,74 +263,306 @@ function EgoPanel({ term, rings, data }: { term: EgoTerm; rings: EgoRings[]; dat
   const [selection, setSelection] = useState<Selection>(null);
   const positions = useMemo(() => ringPositions(rings), [rings]);
   const current = data.periods[period];
-  const view = useMemo(() => visibleEgo(rings[period], current, stage), [rings, current, period, stage]);
+  const [tracing, setTracing] = useState(false);
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
   const center = rings[period].center;
+  const story = stories[term];
+  const target = useMemo(() => data.nodes.findIndex(([name, cat]) => name === story.target && cat === story.targetCategory), [data.nodes, story]);
+  const neighborhood = useMemo(() => visibleEgo(rings[period], current, tracing ? 3 : stage), [rings, current, period, stage, tracing]);
+  const route = useMemo(() => tracing ? egoRoute(neighborhood, center, target) : [], [tracing, neighborhood, center, target]);
+  const view = useMemo(() => {
+    if (!route.length) return neighborhood;
+    const distances: EgoView["distances"] = new Map();
+    const edges: EgoView["edges"] = new Map();
+    route.forEach((id, i) => {
+      distances.set(id, neighborhood.distances.get(id)!);
+      if (i > 0) {
+        const key = edgeKey(route[i - 1], id);
+        edges.set(key, neighborhood.edges.get(key)!);
+      }
+    });
+    return { distances, edges };
+  }, [route, neighborhood]);
   const options = useMemo(() => [...view.distances.keys()].filter((id) => id !== center)
     .sort((a, b) => data.nodes[a][0].localeCompare(data.nodes[b][0], lang)), [view, center, data, lang]);
 
+  const [openGroup, setOpenGroup] = useState<number | null>(null);
+  const showAnnotations = stage > 0;
+  const periodCounts = useMemo(() => {
+    return rings.map(({ near }) => {
+      const counts = { PRAC: 0, CHAR: 0 };
+      for (const id of near) {
+        const category = data.nodes[id][1];
+        if (category === "PRAC" || category === "CHAR") counts[category]++;
+      }
+      return counts;
+    });
+  }, [rings, data.nodes]);
+  const annotationGroups = useMemo(() => {
+    if (!showAnnotations) return [];
+    return (readings[term][current.label] ?? []).map(group => ({
+      ...group,
+      ids: rings[period].near.filter(id => {
+        const [name, category] = data.nodes[id];
+        return group.category === category && group.terms.some(term => term === name);
+      }),
+    }));
+  }, [term, showAnnotations, current.label, rings, period, data.nodes]);
+  const featured = useMemo(() => {
+    if (tracing) return new Set(route.slice(1));
+    if (openGroup !== null) return new Set(annotationGroups[openGroup]?.ids);
+    const names = story.focus[period] ?? [];
+    return new Set(showAnnotations && stage <= 2 ? rings[period].near.filter(id => names.includes(data.nodes[id][0])) : []);
+  }, [annotationGroups, openGroup, stage, tracing, route, story, rings, period, data.nodes, showAnnotations]);
+
+  const arrivals = useMemo(() => {
+    const prior = new Set(rings[period - 1]?.near);
+    return new Set([...featured].filter(id => period > 0 && !prior.has(id)));
+  }, [rings, period, featured]);
+
+  const radiusMetrics = useMemo(() => {
+    const { near, far, center } = rings[period];
+    const directCounts = new Map<string, number>();
+    return [near, [...near, ...far]].map((neighbors, index) => {
+      const unique = new Set(neighbors);
+      unique.delete(center);
+      const counts = new Map<string, number>();
+      for (const id of unique) {
+        const category = data.nodes[id][1];
+        counts.set(category, (counts.get(category) ?? 0) + 1);
+      }
+      let leadingCategory = "", leadingCount = 0;
+      for (const [category, count] of counts) {
+        const added = count - (directCounts.get(category) ?? 0);
+        if (added > leadingCount) {
+          leadingCategory = category;
+          leadingCount = added;
+        }
+        if (index === 0) directCounts.set(category, count);
+      }
+      return { total: unique.size, metric: categoryDiversity(counts), leadingCategory, leadingCount };
+    });
+  }, [data.nodes, rings, period]);
+
+  const visibleMetrics = radiusMetrics.slice(0, stage === 0 ? 0 : stage < 3 ? 1 : 2);
+
   function changePeriod(next: number) {
-    if (next === period) return;
+    if (next === period && !tracing) return;
+    setTracing(false);
+    setEvidenceOpen(false);
     const updated = visibleEgo(rings[next], data.periods[next], stage);
     setSelection((selected) => {
       if (!selected) return null;
       return ("node" in selected ? updated.distances.has(selected.node) : updated.edges.has(selected.edge)) ? selected : null;
     });
+    setOpenGroup(null);
     setPeriod(next);
   }
 
+  function expand() {
+    if (tracing) return;
+    if (stage < 4) setStage((stage + 1) as EgoStage);
+  }
+
+  function traceTarget(next: number) {
+    setPeriod(next);
+    setTracing(true);
+    setSelection({ node: target });
+    setEvidenceOpen(false);
+    setOpenGroup(null);
+  }
+
   function reset() {
+    setTracing(false);
+    setEvidenceOpen(false);
+    setOpenGroup(null);
     setSelection(null);
     setStage(0);
   }
 
   const nodeSelection = selection && "node" in selection ? selection.node : null;
   const edgeSelection = selection && "edge" in selection ? view.edges.get(selection.edge) : undefined;
+  const early = current.label === "2000–2019";
+  const middle = current.label === "2020–2023";
+  const firstFocus = early && showAnnotations ? [...featured].find(id => data.nodes[id][0] === story.focus[0][0]) : undefined;
+  const firstEdge = firstFocus === undefined ? undefined : view.edges.get(edgeKey(center, firstFocus));
+  const evidenceLabel = firstEdge && firstFocus !== undefined ? { id: firstFocus,
+    text: t(firstEdge[4] === 1 ? "ego.singleSentence" : "ego.sentenceCount", { n: firstEdge[4] }) + " · " +
+      t(firstEdge[3] === 1 ? "ego.singleDocument" : "ego.documentCount", { n: firstEdge[3] }) } : null;
+  const earlierCounts = periodCounts[period - 1];
+  const prevDiversity = useMemo(() => {
+    if (!showAnnotations || !middle) return null;
+    const counts = new Map<string, number>();
+    for (const id of rings[period - 1].near) {
+      const cat = data.nodes[id][1];
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    }
+    return categoryDiversity(counts);
+  }, [data.nodes, middle, period, rings, showAnnotations]);
+  const selectedNeighbor = edgeSelection && (edgeSelection[0] === center || edgeSelection[1] === center)
+    ? data.nodes[edgeSelection[0] === center ? edgeSelection[1] : edgeSelection[0]][0] : null;
+  const passage = selectedNeighbor ? passages[term][current.label]?.[selectedNeighbor] : undefined;
   const nodes = t(view.distances.size === 1 ? "ego.oneNode" : "ego.nodes", { n: formatInt(view.distances.size, lang) });
   const edges = t(view.edges.size === 1 ? "ego.oneEdge" : "ego.edges", { n: formatInt(view.edges.size, lang) });
   const counts = nodes + " · " + edges;
+  const metricsPanel = <>
+          <div className="ego-radius-pair" aria-live="polite">
+            {visibleMetrics.map(({ metric, total, leadingCategory, leadingCount }, index) => (
+              <section key={current.label + index} data-radius={index + 1} className="ego-radius">
+                <h5>{t(index === 0 ? "ego.radiusOne" : "ego.radiusTwo")}</h5>
+                <p>{index === 0
+                  ? t("ego.directReading", { n: formatInt(total, lang), term })
+                  : t("ego.extendedReading", { near: formatInt(radiusMetrics[0].total, lang),
+                      added: formatInt(total - radiusMetrics[0].total, lang), total: formatInt(total, lang) })}</p>
+                {leadingCount > 0 && <p>{t(index === 0 ? "ego.directCategory" : "ego.addedCategory", {
+                  count: formatInt(leadingCount, lang), category: categoryLabel(leadingCategory, lang),
+                })}</p>}
+                {metric && <>
+                  <div className="ego-category-strip" aria-hidden="true">
+                    {metric.distribution.filter(({ count }) => count > 0).map(({ category, count }) => (
+                      <i key={category} style={{ width: count / total * 100 + "%", backgroundColor: categoryColor(category) }} />
+                    ))}
+                  </div>
+                  <div className="ego-radius-stats">
+                    <span>{t("ego.categoryCoverage", { present: metric.present, possible: metric.distribution.length })}</span>
+                    <span>{t("dashboard.diversity")} <b>{diversityFormat[lang].format(metric.diversity)}</b></span>
+                  </div>
+                </>}
+              </section>
+            ))}
+          </div>
+          {stage > 0 && <>
+          <p className="ego-scale-note">{t("ego.diversityScale")}</p>
+          <details className="ego-category-detail">
+            <summary>{t("ego.categoryBreakdown")}</summary>
+            <table>
+              <thead><tr><th scope="col">{t("dashboard.categories")}</th>
+                <th scope="col">{t("ego.directColumn")}</th>{visibleMetrics.length === 2 && <th scope="col">{t("ego.extendedColumn")}</th>}</tr></thead>
+              <tbody>{CATEGORY_ORDER.filter(category => category !== "INFRA").map(category => (
+                <tr key={category}><th scope="row"><i aria-hidden="true" style={{ backgroundColor: categoryColor(category) }} />{categoryLabel(category, lang)}</th>
+                  {visibleMetrics.map(({ metric, total }, i) => <td key={i}>{metric ?
+                    formatInt(metric.distribution.find(row => row.category === category)!.count, lang) : total ? "—" : "0"}</td>)}
+                </tr>
+              ))}</tbody>
+            </table>
+          </details>
+          </>}
+  </>;
   return (
     <section className="dashboard-ego-panel" data-ego={term} aria-labelledby={"dashboard-ego-" + term}
       data-period={current.label} data-stage={stage} data-nodes={view.distances.size} data-edges={view.edges.size}>
-      <header className="dashboard-ego-heading">
-        <h3 id={"dashboard-ego-" + term}>{term}</h3>
-        <span>{t(STAGES[stage])}</span>
-      </header>
-      <div className="dashboard-timeline dashboard-ego-timeline" role="group" aria-label={term + " · " + t("top.period")}>
-        {data.periods.map(({ label }, i) => (
-          <button type="button" key={label} aria-pressed={period === i} onClick={() => changePeriod(i)}>{label}</button>
-        ))}
-      </div>
-      <div className="dashboard-ego-plot">
-        <EgoCanvas view={view} positions={positions} data={data} core={center} selection={selection}
-          onSelect={setSelection} label={term + " · " + current.label + " · " + counts} />
-        <button type="button" className="dashboard-ego-center"
-          aria-label={term + " · " + t(ACTIONS[stage])} aria-disabled={stage === 4}
-          onClick={() => { if (stage < 4) setStage((stage + 1) as EgoStage); }}>
-          {term}
-        </button>
-      </div>
-      <div className="dashboard-ego-footer">
-        <div aria-live="polite">
-          <strong className="num">{current.label} · {counts}</strong>
-          <p>
-            {nodeSelection !== null ? (
-              <>{data.nodes[nodeSelection][0]} · {categoryLabel(data.nodes[nodeSelection][1], lang)} · {t(view.distances.get(nodeSelection) === 1 ? "ego.firstDistance" : "ego.secondDistance")}</>
-            ) : edgeSelection ? (
-              <>{data.nodes[edgeSelection[0]][0]} ↔ {data.nodes[edgeSelection[1]][0]} · {t("ego.edgeEvidence", {
-                weight: new Intl.NumberFormat(lang, { maximumSignificantDigits: 5 }).format(edgeSelection[2]),
-                documents: edgeSelection[3], sentences: edgeSelection[4],
-              })}</>
-            ) : t(ACTIONS[stage])}
-          </p>
+      <div className="ego-workspace">
+        <div className="ego-network-column">
+          <header className="dashboard-ego-heading">
+            <div>
+              <h3 id={"dashboard-ego-" + term}>{term}</h3>
+              <span className="num">{current.label} · {counts}</span>
+            </div>
+            {!tracing && stage > 0 && stage < 4 && <button type="button" className="dashboard-action" onClick={expand}>{t(ACTIONS[stage])}</button>}
+          </header>
+          <div className="dashboard-ego-plot">
+            <EgoCanvas arrivals={arrivals} route={route} evidenceLabel={evidenceLabel} featured={featured} view={view} positions={positions} data={data} core={center} selection={selection}
+              onSelect={setSelection} label={term + " · " + current.label + " · " + counts} />
+            <button type="button" className="dashboard-ego-center"
+              aria-label={tracing ? term : term + " · " + t(ACTIONS[stage])} aria-disabled={tracing || stage === 4}
+              onClick={expand}>
+              {term}
+              {stage === 0 && <small>{t(ACTIONS[0])} <span aria-hidden="true">＋</span></small>}
+            </button>
+          </div>
+          {stage > 0 && <div className="dashboard-ego-footer">
+            <div className="ego-selected" aria-live="polite">
+              {(selection !== null || stage === 4) && <p>
+                {nodeSelection !== null ? (
+                  <>{data.nodes[nodeSelection][0]} · {categoryLabel(data.nodes[nodeSelection][1], lang)} · {t(view.distances.get(nodeSelection) === 1 ? "ego.firstDistance" : "ego.secondDistance")}</>
+                ) : edgeSelection ? (
+                  <>{data.nodes[edgeSelection[0]][0]} ↔ {data.nodes[edgeSelection[1]][0]} · {t("ego.edgeEvidence", {
+                    weight: new Intl.NumberFormat(lang, { maximumSignificantDigits: 5 }).format(edgeSelection[2]),
+                    documents: edgeSelection[3], sentences: edgeSelection[4],
+                  })}</>
+                ) : t(ACTIONS[stage])}
+              </p>}
+            </div>
+            <div className="dashboard-ego-tools">
+              <select aria-label={t("ego.inspectNode")} disabled={options.length === 0} value={nodeSelection ?? ""}
+                onChange={(event) => setSelection(event.target.value === "" ? null : { node: Number(event.target.value) })}>
+                <option value="">{t("ego.inspectNode")}</option>
+                {options.map((id) => <option key={id} value={id}>{data.nodes[id][0]} · {categoryLabel(data.nodes[id][1], lang, true)}</option>)}
+              </select>
+              <button type="button" className="dashboard-action" disabled={stage === 0} onClick={reset}>{t("ego.reset")}</button>
+            </div>
+          </div>}
+          <div className="ego-period-picker">
+            <span>{t("top.period")}</span>
+            <div className="dashboard-timeline dashboard-ego-timeline" role="group" aria-label={term + " · " + t("top.period")}>
+              {data.periods.map(({ label }, i) => (
+                <button type="button" key={label} aria-pressed={period === i} onClick={() => changePeriod(i)}>{label}</button>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="dashboard-ego-tools">
-          <select aria-label={t("ego.inspectNode")} disabled={options.length === 0} value={nodeSelection ?? ""}
-            onChange={(event) => setSelection(event.target.value === "" ? null : { node: Number(event.target.value) })}>
-            <option value="">{t("ego.inspectNode")}</option>
-            {options.map((id) => <option key={id} value={id}>{data.nodes[id][0]} · {categoryLabel(data.nodes[id][1], lang, true)}</option>)}
-          </select>
-          <button type="button" className="dashboard-action" disabled={stage === 0} onClick={reset}>{t("ego.reset")}</button>
-        </div>
+        <aside className="ego-comparison" aria-labelledby={"ego-comparison-" + term}>
+          <h4 id={"ego-comparison-" + term}>{t(showAnnotations ? "ego.networkChange" : "ego.neighborDiversity", { term })}</h4>
+          {stage === 0 && <p className="ego-reading-prompt">{t("ego.openReading")}</p>}
+          {showAnnotations && <section key={current.label} className="ego-period-reading">
+            <p className="ego-reading-period">{current.label} · {t(tracing ? "ego.route" : "ego.directColumn")}</p>
+            {tracing ? <div className="ego-story-focus" aria-live="polite">
+              <h5>{t(route.length === 3 ? "ego.twoStepTarget" : "ego.directTarget", { term: story.target })}</h5>
+              <p className="ego-route">{route.map(id => data.nodes[id][0]).join(" → ")}</p>
+              {middle ? <button className="dashboard-action" onClick={() => traceTarget(period + 1)}>{t("ego.seeLast")}</button>
+                : <button className="dashboard-action" onClick={() => traceTarget(period - 1)}>{t("ego.seeMiddle")}</button>}
+              <button className="ego-evidence-toggle" onClick={() => { setTracing(false); setPeriod(2); setSelection(null); }}>{t("ego.endTrace")}</button>
+            </div> : <div className="ego-story-focus">
+              <h5>{early ? story.earlyTitle[lang] : middle ? story.middleTitle[lang] :
+                t("ego.actorJump", { before: earlierCounts.CHAR, now: periodCounts[period].CHAR })}</h5>
+              <p>{early ? story.earlyReading[lang] : middle ? story.middleReading[lang] : story.actorReading[lang]}</p>
+              {middle && prevDiversity && radiusMetrics[0].metric && <p className="ego-story-metric">
+                {t("ego.directDiversity")} <b>{diversityFormat[lang].format(prevDiversity.diversity)} → {diversityFormat[lang].format(radiusMetrics[0].metric.diversity)}</b>
+              </p>}
+              {!early && !middle && <>
+                <button className="ego-evidence-toggle" onClick={() => { setEvidenceOpen(true); setOpenGroup(annotationGroups.findIndex(group => group.category === "CHAR")); setSelection(null); }}>{t("ego.seeActors")}</button>
+                <h5 className="ego-secondary-story">{story.routeTitle[lang]}</h5>
+                <p>{story.routeReading[lang]}</p>
+                <button className="dashboard-action" onClick={() => traceTarget(period - 1)}>{story.follow[lang]}</button>
+              </>}
+            </div>}
+            {!tracing && <details key={current.label} open={evidenceOpen} className="ego-story-evidence"
+              onToggle={event => {
+                const open = event.currentTarget.open;
+                setEvidenceOpen(open);
+                if (!open) { setOpenGroup(null); setSelection(null); }
+              }}>
+              <summary>{t("ego.storyEvidence")}</summary>
+            {annotationGroups.map((group, index) => {
+              return <article key={group.category} data-reading={group.category}>
+                <p className="ego-reading-category"><i aria-hidden="true" style={{ backgroundColor: categoryColor(group.category) }} />
+                  {categoryLabel(group.category, lang)}</p>
+
+                <button className="ego-evidence-toggle" type="button" aria-expanded={openGroup === index}
+                  onClick={() => { setOpenGroup(openGroup === index ? null : index); setSelection(null); }}>
+                  {t("ego.termLinks", { n: group.ids.length })}</button>
+                {openGroup === index && <>
+                  <p>{group.text[lang]}</p>
+                  <div className="ego-annotation-terms">{group.ids.map(id => (
+                  <button type="button" key={id} aria-pressed={selection !== null && "edge" in selection && selection.edge === edgeKey(center,id)}
+                    onClick={() => setSelection({ edge: edgeKey(center,id) })}>{data.nodes[id][0]}</button>
+                ))}</div>
+                </>}
+                {openGroup === index && edgeSelection && group.ids.some(id => edgeKey(id, center) === edgeKey(edgeSelection[0], edgeSelection[1])) &&
+                  <div aria-live="polite"><p className="ego-reading-scope">{t("ego.edgeEvidence", {
+                    weight: new Intl.NumberFormat(lang, { maximumSignificantDigits: 5 }).format(edgeSelection[2]),
+                    documents: edgeSelection[3], sentences: edgeSelection[4],
+                  })}</p>
+                  {passage && <blockquote className="ego-passage">{passage.text}
+                    <cite>{passage.document_name} · {passage.year} · {passage.sentence_id}</cite></blockquote>}</div>}
+              </article>;
+            })}
+            </details>}
+          </section>}
+          {showAnnotations ? !tracing && <details className="ego-story-metrics">
+            <summary>{t("ego.metricsDetails")}</summary>{metricsPanel}
+          </details> : metricsPanel}
+        </aside>
       </div>
     </section>
   );

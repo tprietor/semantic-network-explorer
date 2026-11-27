@@ -1,0 +1,182 @@
+{
+  "conservation": {
+    "2000–2019": [
+      {
+        "category": "PRAC",
+        "text": {
+          "es": "Los pasajes describen el potencial del cacao agroforestal y las chakras para conservar biodiversidad. El manejo de sombra enlaza decisiones de cultivo con la selección de árboles.",
+          "en": "The passages describe the potential of cacao agroforestry and chakra farming to conserve biodiversity. Shade management links cropping decisions to tree selection."
+        },
+        "terms": [
+          "Shade management",
+          "chakra farming",
+          "cacao agroforestry"
+        ]
+      },
+      {
+        "category": "eco_INFRA",
+        "text": {
+          "es": "Shade trees es el cuarto vecino y el único de infraestructura ecológica.",
+          "en": "Shade trees is the fourth neighbor and the only ecological infrastructure term."
+        },
+        "terms": [
+          "shade trees"
+        ]
+      }
+    ],
+    "2020–2023": [
+      {
+        "category": "PRAC",
+        "text": {
+          "es": "Minería y deforestación aparecen cada una en dos documentos. Restauración y manejo forestal también están en el radio directo.",
+          "en": "Mining and deforestation each appear in two documents. Forest restoration and forest management are also direct neighbors."
+        },
+        "terms": [
+          "mining",
+          "deforestation",
+          "forest restoration",
+          "landscape restoration",
+          "forest management",
+          "chagras"
+        ]
+      },
+      {
+        "category": "CHAR",
+        "text": {
+          "es": "Indigenous Peoples aparece en dos documentos. Familias, mujeres y niños también figuran entre los ocho actores directos.",
+          "en": "Indigenous Peoples appears in two documents. Families, women and children are also among the eight directly linked actors."
+        },
+        "terms": [
+          "Indigenous Peoples",
+          "families",
+          "women",
+          "children"
+        ]
+      }
+    ],
+    "2024–2026": [
+      {
+        "category": "PRAC",
+        "text": {
+          "es": "Deforestation comparte 27 oraciones de cinco documentos con conservation. Restauración, planificación del uso del suelo y financiación climática también tienen enlaces directos.",
+          "en": "Deforestation shares 27 sentences across five documents with conservation. Restoration, land-use planning and climate finance also have direct links."
+        },
+        "terms": [
+          "deforestation",
+          "restoration",
+          "land-use planning",
+          "climate finance"
+        ]
+      },
+      {
+        "category": "CHAR",
+        "text": {
+          "es": "IPLCs, Indigenous Peoples y local communities son nodos distintos. El pasaje de IPLCs discute la contribución de sus procesos de gobernanza a la conservación.",
+          "en": "IPLCs, Indigenous Peoples and local communities are distinct nodes. The IPLCs passage discusses the contribution of their governance processes to conservation."
+        },
+        "terms": [
+          "IPLCs",
+          "Indigenous Peoples",
+          "smallholders",
+          "local communities"
+        ]
+      },
+      {
+        "category": "RUL",
+        "text": {
+          "es": "Territorial rights comparte cuatro oraciones de un documento con conservation. El enlace permite examinar cómo sitúa ese texto los derechos en la discusión sobre conservación.",
+          "en": "Territorial rights shares four sentences in one document with conservation. This link lets readers examine how that text frames rights within conservation."
+        },
+        "terms": [
+          "territorial rights",
+          "governance frameworks"
+        ]
+      }
+    ]
+  },
+  "monoculture": {
+    "2000–2019": [
+      {
+        "category": "PRAC",
+        "text": {
+          "es": "Los vecinos incluyen cultivos intercalados, cultivo de cacao y un modelo agroforestal. Los pasajes permiten examinar qué sistemas productivos se comparan.",
+          "en": "Neighbors include intercropping, cacao cultivation and an agroforestry model. The passages show which production systems the documents compare."
+        },
+        "terms": [
+          "agroforestry model",
+          "Intercropping",
+          "cacao cultivation"
+        ]
+      },
+      {
+        "category": "CHAR",
+        "text": {
+          "es": "CAMTA y cooperative leader son los dos actores directos. Los pasajes describen ensayos de diversificación ante los riesgos del monocultivo.",
+          "en": "CAMTA and cooperative leader are the two directly linked actors. The passages describe efforts to diversify in response to the risks of monoculture."
+        },
+        "terms": [
+          "CAMTA",
+          "cooperative leader"
+        ]
+      }
+    ],
+    "2020–2023": [
+      {
+        "category": "PRAC",
+        "text": {
+          "es": "Los textos vinculan monoculture con agricultura a gran escala, mejora de semillas y control de plagas. Otros pasajes lo sitúan junto a las chagras y los sistemas alimentarios tradicionales.",
+          "en": "The texts link monoculture to large-scale agriculture, seed improvement and pest control. Other passages mention it alongside chagras and traditional food systems."
+        },
+        "terms": [
+          "large-scale agriculture",
+          "seed improvement",
+          "pest control",
+          "chagra",
+          "traditional food systems"
+        ]
+      },
+      {
+        "category": "CHAR",
+        "text": {
+          "es": "Families aparece en tres oraciones de un documento. Embrapa, universidades y agricultores familiares también están entre los diez actores directos.",
+          "en": "Families appears in three sentences in one document. Embrapa, universities and family farmers are also among the ten directly linked actors."
+        },
+        "terms": [
+          "families",
+          "Embrapa",
+          "universities",
+          "family farmer"
+        ]
+      }
+    ],
+    "2024–2026": [
+      {
+        "category": "PRAC",
+        "text": {
+          "es": "Un pasaje describe fincas donde hay parcelas de cacao agroforestal junto a parcelas de monocultivo de cacao. Otros comparan sistemas diversificados y de monocultivo.",
+          "en": "One passage describes farms with cacao agroforestry plots alongside cacao monoculture. Others compare diversified and monoculture systems."
+        },
+        "terms": [
+          "cattle ranching",
+          "cacao agroforestry",
+          "Mixed Diversified System",
+          "deforestation"
+        ]
+      },
+      {
+        "category": "CHAR",
+        "text": {
+          "es": "Producers e IPLCs aparecen cada uno en dos documentos. Local communities tiene un enlace directo registrado en una oración.",
+          "en": "Producers and IPLCs each appear in two documents. Local communities has a direct link recorded in one sentence."
+        },
+        "terms": [
+          "producers",
+          "IPLCs",
+          "local communities",
+          "universities",
+          "Indigenous Peoples"
+        ]
+      }
+    ]
+  }
+}

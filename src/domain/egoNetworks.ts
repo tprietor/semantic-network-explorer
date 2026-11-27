@@ -45,3 +45,15 @@ export function visibleEgo(rings: EgoRings, period: EgoPeriod, stage: EgoStage) 
 export function edgeKey(a: number, b: number): string {
   return a < b ? a + ":" + b : b + ":" + a;
 }
+
+/** A single observed shortest route, using only edges from the displayed period. */
+export function egoRoute(view: ReturnType<typeof visibleEgo>, core: number, target: number) {
+  const direct = view.edges.get(edgeKey(core, target));
+  if (direct) return [core, target];
+  for (const [id, distance] of view.distances) {
+    if (distance === 1 && view.edges.has(edgeKey(core, id)) && view.edges.has(edgeKey(id, target))) {
+      return [core, id, target];
+    }
+  }
+  return [];
+}

@@ -1,0 +1,230 @@
+{
+  "2000–2019": {
+    "mining": {
+      "document_name": "Global demand for gold is another threat for tropical forests.pdf",
+      "sentence_id": "s-000000289",
+      "year": 2015,
+      "text": "Gold mining causes significant alteration to the environment, yet mining is often overlooked in deforestation analyses because it occupies relatively small areas."
+    },
+    "gold mining": {
+      "document_name": "High potential agroforestry species_Thesis_Elisabeth_Lagneaux.pdf",
+      "sentence_id": "s-000020396",
+      "year": 2018,
+      "text": "The second regional driver of deforestation is agriculture, a sector that represents a much lower contribution to the regional GDP (6%) but employs a higher part (17%) of the economically active population than gold mining (INEI 2018)."
+    },
+    "cattle ranching": {
+      "document_name": "Global demand for gold is another threat for tropical forests.pdf",
+      "sentence_id": "s-000002137",
+      "year": 2015,
+      "text": "The deforestation of high diversity tropical ecosystems has been mainly due to agricultural expansion, cattle ranching, timber extraction, and urban expansion; and these activities have important consequences for the global carbon budget, biodiversity loss, and degradation of ecosystem services."
+    },
+    "logging": {
+      "document_name": "Global demand for gold is another threat for tropical forests.pdf",
+      "sentence_id": "s-000007865",
+      "year": 2015,
+      "text": "The TMFB of South America has one of the highest deforestation rates in the world, mostly due to logging and the expansion of cattle ranching and modern agriculture."
+    },
+    "agricultural expansion": {
+      "document_name": "Global demand for gold is another threat for tropical forests.pdf",
+      "sentence_id": "s-000002137",
+      "year": 2015,
+      "text": "The deforestation of high diversity tropical ecosystems has been mainly due to agricultural expansion, cattle ranching, timber extraction, and urban expansion; and these activities have important consequences for the global carbon budget, biodiversity loss, and degradation of ecosystem services."
+    },
+    "oil exploration": {
+      "document_name": "Global demand for gold is another threat for tropical forests.pdf",
+      "sentence_id": "s-000027788",
+      "year": 2015,
+      "text": "Magdalena Valley montane forest and Magdalena–Urabá moist forest ecoregions) has been a hotspot of deforestation in Colombia due to oil exploration, cattle ranching, small-scale agriculture, and gold mining."
+    },
+    "remote sensing": {
+      "document_name": "Global demand for gold is another threat for tropical forests.pdf",
+      "sentence_id": "s-000023392",
+      "year": 2015,
+      "text": "In this study, remote sensing analyses combined with ancillary information revealed widespread gold mining deforestation throughout the TMFB of South America."
+    },
+    "reforestation": {
+      "document_name": "Global demand for gold is another threat for tropical forests.pdf",
+      "sentence_id": "s-000007330",
+      "year": 2015,
+      "text": "(2) What were the trends of forest change (e.g. deforestation and reforestation) before and after the International Financial Crisis of 2007–2008?"
+    },
+    "FAO": {
+      "document_name": "High potential agroforestry species_Thesis_Elisabeth_Lagneaux.pdf",
+      "sentence_id": "s-000014854",
+      "year": 2018,
+      "text": "Peru is also the only Amazonian country where the expansion of cattle is not the main driver of deforestation yet, the increase of small scale farming being the main cause (41% of total deforestation in 2016) (FAO 2016)."
+    },
+    "municipalities": {
+      "document_name": "Global demand for gold is another threat for tropical forests.pdf",
+      "sentence_id": "s-000021079",
+      "year": 2015,
+      "text": "The majority of the deforestation in this ecoregion was concentrated in the Suriname municipalities of Brokopondo and Sipaliwini."
+    },
+    "hunter-gatherers": {
+      "document_name": "Indigenous_Agroforestry_Systems_in_Amazonia_From_P.pdf",
+      "sentence_id": "s-000000305",
+      "year": 2006,
+      "text": "The agroforestry systems in Amazonia follow a trail that begins with the arrival of the first hunter-gatherers in prehistoric times, followed by the domestication of plants for agriculture, the development of complex societies rich in material culture, the decimation of these societies by European diseases, warfare, and slavery, the introduction of exotic species, and finally, the present-day scenario of widespread deforestation, in which agroforestry is ascribed a potential role as an alternative land use."
+    }
+  },
+  "2020–2023": {
+    "conservation": {
+      "document_name": "Amazonian-Forest-The-Products-of-Agroecological-Systems-Considerations-about-the-Natural-Forest-and-Economic-Exploitation-for-its-Conservation-and-How-to-Develop-Sustainable-Agroforestry-Systems-that-Induce-the-Reduct.pdf",
+      "sentence_id": "s-000051125",
+      "year": 2021,
+      "text": "With the cocoa market on the rise worldwide and economic activities not satisfactorily responding to the problems arising from poverty and illegal deforestation, agroforestry activity with cocoa production has attracted attention as a potential tool for the rehabilitation of degraded / altered areas, capable of reconciling production with forest conservation."
+    },
+    "restoration": {
+      "document_name": "Critical transitions in the Amazon forest s41586-023-06970-0.pdf",
+      "sentence_id": "s-000001464",
+      "year": 2022,
+      "text": "Keeping the Amazon forest resilient in the Anthropocene will depend on a combination of local efforts to end deforestation and degradation and to expand restoration, with global efforts to stop greenhouse gas emissions."
+    },
+    "socio-bioeconomy": {
+      "document_name": "Supporting sociobioeconomies (SPA).pdf",
+      "sentence_id": "s-000018658",
+      "year": 2023,
+      "text": "increase finance for socio-bioeconomy to push and pull innovations a) Redirect harmful subsidies redirecting finance from activities that actively harm the existing socio-bioeconomy through deforestation and degradation to sustainable agroforestry, sustainable management of timber and non- timber forest products, sustainable aquaculture and community-led nature tourism is important."
+    },
+    "ecotourism": {
+      "document_name": "Twenty years of land cover change in the southeastern Peruvian Amazon.pdf",
+      "sentence_id": "s-000039586",
+      "year": 2020,
+      "text": "Some studies have shown that large PAs, private managed conservation, and ecotourism concessions are all effective to protect against deforestation."
+    },
+    "monoculture": {
+      "document_name": "Supporting sociobioeconomies (SPA).pdf",
+      "sentence_id": "s-000007407",
+      "year": 2023,
+      "text": "Lead to deforestation and environmental degradation Reduce river connectivity > Promote monocultures, simplification and unsustainable intensification > Result in homogenization Reduce biodiversity and impair ecosystem services Undermine ecosystem recovery > Infringe on territorial rights, promote conflict, or harm local people Extract and export products without adding value > Benefit only elites or privileged groups or increase social inequality Promote only short-term social benefits Lead to dependency and poverty traps"
+    },
+    "illegal gold mining": {
+      "document_name": "fclim-05-1145942.pdf",
+      "sentence_id": "s-000013251",
+      "year": 2023,
+      "text": "Illegal gold mining and deforestation for coca plantations as well as poaching are increasing in the whole MAP region with the main emphasis in Madre de Dios, where also legal gold mining occurs on large scale (Salisbury and Fagan, 2013; Espin and Perz, 2021)."
+    },
+    "illegal logging": {
+      "document_name": "Farm Knowledge Co-Production at an Old Amazonian Frontier 72-1-1214-1-10-20211011.pdf",
+      "sentence_id": "s-000007810",
+      "year": 2021,
+      "text": "These policies include environmental regulations and improved monitoring systems to control deforestation and illegal logging."
+    },
+    "FAO": {
+      "document_name": "The_new_bioeconomy_in_the_Amazon_Opportunities 2021Abramovayetal.Chapter-30.pdf",
+      "sentence_id": "s-000049021",
+      "year": 2021,
+      "text": "Deforestation rates inside ITs are 2 times smaller than they are outside of them in Colombia, 2.5 times smaller in Brazil, and 2.8 times smaller in Bolivia (FAO and FILAC 2021)."
+    },
+    "municipalities": {
+      "document_name": "The_new_bioeconomy_in_the_Amazon_Opportunities 2021Abramovayetal.Chapter-30.pdf",
+      "sentence_id": "s-000040209",
+      "year": 2021,
+      "text": "Furthermore, the institutional degradation to which this deforestation is linked leads to the escalation of violence: Sant'Anna and Young (2010) demonstrate the increase in homicide rates in the Brazilian Amazon municipalities with greater deforestation."
+    },
+    "Indigenous Peoples": {
+      "document_name": "Traditional forest-related knowledge and agrobiodiversity preservations 10531-021-02263-y.pdf",
+      "sentence_id": "s-000030330",
+      "year": 2021,
+      "text": "In reality, thanks to their recognition at legislative level and their activities, indigenous populations can effectively act as a defence against deforestation."
+    },
+    "producers": {
+      "document_name": "The_new_bioeconomy_in_the_Amazon_Opportunities 2021Abramovayetal.Chapter-30.pdf",
+      "sentence_id": "s-000054553",
+      "year": 2021,
+      "text": "In the \"arc of deforestation\" of the Brazilian Amazon, the capacity for timber extraction has been depleted by the forestry sector, causing producers to seek new areas to harvest."
+    },
+    "IPLCs": {
+      "document_name": "The_new_bioeconomy_in_the_Amazon_Opportunities 2021Abramovayetal.Chapter-30.pdf",
+      "sentence_id": "s-000141387",
+      "year": 2021,
+      "text": "Many of the companies that have become protagonists of these initiatives have, until very recently, engaged in economic practices that have led to deforestation and disrespect for IPLCs' rights."
+    },
+    "Brazilian Government": {
+      "document_name": "Amazonian-Forest-The-Products-of-Agroecological-Systems-Considerations-about-the-Natural-Forest-and-Economic-Exploitation-for-its-Conservation-and-How-to-Develop-Sustainable-Agroforestry-Systems-that-Induce-the-Reduct.pdf",
+      "sentence_id": "s-000087710",
+      "year": 2021,
+      "text": "In particular, the increase in deforestation rates in the first half of 2020 raised global concerns to the point that a large group of investment funds sent a letter to Brazilian Government warning that the country was under great risk of losing investments if it failed to reduce deforestation and fires."
+    },
+    "government": {
+      "document_name": "Supporting sociobioeconomies (SPA).pdf",
+      "sentence_id": "s-000014806",
+      "year": 2023,
+      "text": "Focus should be placed on b Many of these suggestions are present in the fifth phase of Brazil's Plan for the Control and Prevention of Deforestation. c Public forestlands not allocated by the federal or state governments to a specific tenure status."
+    }
+  },
+  "2024–2026": {
+    "Brazil nut harvesting": {
+      "document_name": "Panarchy to explore land use_ a historical case study from the Peruvian Amazon s11625-024-01502-9.pdf",
+      "sentence_id": "s-000021400",
+      "year": 2024,
+      "text": "Studies have found that Brazil nut harvesting exerts pressure on the ecosystem because the activity is correlated with increased wildlife hunting, timber exploitation, and even deforestation due to subsequent farming activities."
+    },
+    "cacao agroforestry": {
+      "document_name": "The agroforestry myth of sustainable cacao production s10457-026-01518-3.pdf",
+      "sentence_id": "s-000004131",
+      "year": 2026,
+      "text": "With statements like \" Restoring the Peruvian Amazon through cacao agroforestry\" and \" Eating Peruvian chocolate can save the future of the Amazon rainforest\", projects seek to disassociate cacao production from the negative effects of commodity crop production, such as massive deforestation and multiple environmental and social challenges, and market cacao as socially and environmentally sustainable."
+    },
+    "forest management": {
+      "document_name": "Amazon Assessment report 2025.pdf",
+      "sentence_id": "s-000458925",
+      "year": 2025,
+      "text": "- The Amazon Indigenous REDD+ (Reducing Emissions from Deforestation and forest Degradation) initiative promotes the inclusion of IPs and their forest management practices to support territorial rights and inclusive conservation."
+    },
+    "carbon accounting": {
+      "document_name": "Amazon Assessment report 2025.pdf",
+      "sentence_id": "s-000105794",
+      "year": 2025,
+      "text": "- Integrate forest degradation into carbon accounting systems, ensuring its inclusion in nationally determined contributions (NDCs) to the Paris Agreement targets under the United Nations Framework Convention on Climate Change (UNFCCC) and reforming REDD+ (referring to reducing emissions from deforestation and forest degradation in developing countries, plus other forest-related activities) and national greenhouse gas inventories to account for degradation-related emissions and prevent hidden carbon losses."
+    },
+    "climate adaptation": {
+      "document_name": "Amazon Assessment report 2025.pdf",
+      "sentence_id": "s-000259608",
+      "year": 2025,
+      "text": "Disruptions to these networks, including land grabbing, forced displacement, and deforestation, undermine the transmission of knowledge systems critical to biodiversity management, climate adaptation, and sustainable resource use."
+    },
+    "Indigenous Peoples": {
+      "document_name": "Panarchy to explore land use_ a historical case study from the Peruvian Amazon s11625-024-01502-9.pdf",
+      "sentence_id": "s-000005304",
+      "year": 2024,
+      "text": "In just over a century, the region went from isolation and inhabitation by Indigenous groups, to becoming a highly intervened and interconnected area of the Amazon showing some of the highest deforestation rates country-wide."
+    },
+    "IPLCs": {
+      "document_name": "Amazon Assessment report 2025.pdf",
+      "sentence_id": "s-000099484",
+      "year": 2025,
+      "text": "- Indigenous Peoples (IPs) and Local Communities (LCs) defend their territories against deforestation and promote forest restoration through agroforestry systems, but loss of Indigenous and Local Knowledge, threats to territorial rights, and lack of financial and technical support undermine their capacity to manage and protect these areas."
+    },
+    "regional governments": {
+      "document_name": "Property_Community_and_the_Making_of_an_Agricultural_Frontier_of_the_Peruvian_Amazon Pena_Alegria_2025.pdf",
+      "sentence_id": "s-000167396",
+      "year": 2025,
+      "text": "A novel aspect of these small concessions17 is that farmers sign a contract with the regional government in which farmers agree to implement sustainable practices, mainly to stop deforestation and to install agroforestry systems (LFFS, 2011, Article 63)."
+    },
+    "local communities": {
+      "document_name": "Amazon Assessment report 2025.pdf",
+      "sentence_id": "s-000041806",
+      "year": 2025,
+      "text": "Deforestation and environmental degradation also threaten Indigenous Peoples (IPs), as well as Afrodescendant Peoples and Local Communities (two separate categories who we hereafter refer to together as Local Communities (LCs) in this document); these threats compromise their livelihoods, food sovereignty, biocultural diversity, lifeways, and knowledge systems."
+    },
+    "smallholders": {
+      "document_name": "Síntesis sobre Theobroma cacao desde un enfoque social ligado a políticas, deforestación -Executive summary.pdf",
+      "sentence_id": "s-000015993",
+      "year": 2025,
+      "text": "The inclusion of smallholders in commodity production frequently entails their integration into volatile global value chains that undermine livelihood security and risk deforestation."
+    },
+    "cacao industry": {
+      "document_name": "Síntesis sobre Theobroma cacao desde un enfoque social ligado a políticas, deforestación -Executive summary.pdf",
+      "sentence_id": "s-000040122",
+      "year": 2025,
+      "text": "Deforestation, farmer poverty, and exploitative labour practices are ongoing issues affecting the global cacao industry."
+    },
+    "financial institutions": {
+      "document_name": "Amazon Assessment report 2025.pdf",
+      "sentence_id": "s-000307632",
+      "year": 2025,
+      "text": "- Geovisor for the Arc of Deforestation in the Colombian Amazon was implemented by the Colombian banking industry for the analysis and management of environmental and social risks by financial institutions."
+    }
+  }
+}

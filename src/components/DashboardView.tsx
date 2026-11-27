@@ -1,3 +1,4 @@
+import { categoryDiversity, diversityFormat, type Diversity } from "../domain/diversity";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { CORE_PERIOD, MIDDLE_PERIOD, macroClusters, type MacroConfiguration } from "../domain/dashboardMacros";
@@ -9,6 +10,36 @@ import { useTheme } from "../state/theme";
 import { Loader } from "./Loader";
 import { EgoNetworksView } from "./EgoNetworksView";
 import "./dashboard.css";
+
+function ClusterDiversity({ metric }: { metric: Diversity }) {
+  const { lang, t } = useT();
+  if (!metric) return <p>{t("dashboard.diversityUnavailable")}</p>;
+  const { distribution, total, present, entropy, diversity } = metric;
+  const number = diversityFormat[lang];
+  return (
+    <section className="dashboard-diversity">
+      <h4>{t("dashboard.diversity")} <strong>{number.format(diversity)}</strong></h4>
+      <div className="dashboard-diversity-bar" aria-hidden="true">
+        {distribution.filter(({ count }) => count > 0).map(({ category, count }) => (
+          <span key={category} style={{ width: count / total * 100 + "%", backgroundColor: categoryColor(category) }}
+            title={categoryLabel(category, lang) + " · " + count} />
+        ))}
+      </div>
+      <details className="dashboard-category-key">
+        <summary>{t("dashboard.diversityCounts", { present, possible: distribution.length, nodes: total })}</summary>
+        <p>{t("dashboard.diversityMethod", { bits: number.format(entropy) })}</p>
+        <ul className="dashboard-category-counts">
+          {distribution.map(({ category, count }) => (
+            <li className="dashboard-count-row" key={category} data-category={category}>
+              <span><i aria-hidden="true" style={{ backgroundColor: categoryColor(category) }} />{categoryLabel(category, lang)}</span>
+              <strong>{formatInt(count, lang)}</strong>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </section>
+  );
+}
 
 type DashboardNode = [name: string, category: string, cluster: number, betweenness: number];
 type DashboardEdge = [source: number, target: number, weight: number];
@@ -302,10 +333,12 @@ interface CanvasProps {
   macroStory: MacroBridgeStory | undefined;
   selectedMacro: number | null;
   selectedCluster: number | null;
+  diversity: Diversity[] | null;
+  onCluster: (rank: number) => void;
   onMacro: (id: number) => void;
   onSelect: (node: number | null) => void;
 }
-function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macroStory, selectedMacro, selectedCluster, onMacro, onSelect }: CanvasProps) {
+function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macroStory, selectedMacro, selectedCluster, diversity, onCluster, onMacro, onSelect }: CanvasProps) {
   const theme = useTheme();
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -352,6 +385,7 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
     const focusedStory = macroStory ?? story;
     const highlightedNodes = new Set(macroStory?.links.map((link) => link.node) ?? story?.terms);
     const link = theme === "oscuro" ? "#a4b6a9" : "#4b6259";
+    const diversityInk = getComputedStyle(canvas).getPropertyValue("--diversity-ink").trim();
     const nodeRadius = width < 560 ? 3 : 3.5;
     const visibleInCluster = snapshot.nodes.map((node) => selectedCluster === null || node[2] === selectedCluster);
 
@@ -386,7 +420,13 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
             context.globalAlpha = Math.max(0, (progress - .46) / .54) * (rank === selectedCluster ? .32 : .08);
           }
           context.beginPath();
-          context.fillStyle = group.color;
+          const metric = diversity?.[rank];
+          if (metric) {
+            context.fillStyle = diversityInk;
+            context.globalAlpha = Math.max(0, (progress - .46) / .54) * (.12 + .68 * metric.diversity);
+          } else {
+            context.fillStyle = group.color;
+          }
           context.ellipse(group.x, group.y, group.radiusX, group.radiusY, 0, 0, TAU);
           context.fill();
         }
@@ -443,7 +483,7 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
     }
     draw(started);
     return () => cancelAnimationFrame(frame);
-  }, [snapshot, intermediaries, clustered, grouped, layout, selected, story, macroStory, selectedMacro, selectedCluster, theme, width]);
+  }, [snapshot, intermediaries, clustered, grouped, layout, selected, story, macroStory, selectedMacro, selectedCluster, diversity, theme, width]);
 
   function inspect(event: PointerEvent<HTMLCanvasElement>) {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -469,7 +509,15 @@ function DashboardGraph({ snapshot, stage, grouped, lang, selected, story, macro
   return (
     <div className="dashboard-graph" ref={hostRef} style={{ height: layout.height }}>
       <canvas ref={canvasRef} role="img" aria-label={snapshot.label} onPointerUp={inspect} />
-      {width > 0 && layout.groups.map((group, rank) => (
+      {width > 0 && layout.groups.map((group, rank) => diversity ? (
+        <button type="button" key={group.label} data-cluster={group.label}
+          className="dashboard-cluster dashboard-diversity-label"
+          aria-pressed={selectedCluster === rank} data-highlighted={selectedCluster === rank || undefined}
+          style={{ left: group.labelPosition.x, top: group.labelPosition.y }}
+          onClick={() => onCluster(rank)}>
+          {group.label}<small>{diversity[rank] ? diversityFormat[lang].format(diversity[rank].diversity) : "—"}</small>
+        </button>
+      ) : (
         <span
           key={group.label}
           data-cluster={group.label}
@@ -542,6 +590,7 @@ function NestedFitDetails({ fit }: { fit: NestedFit }) {
 
 function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: DashboardNetworkMode }) {
   const { t, lang } = useT();
+  const [showDiversity, setShowDiversity] = useState(false);
   const [period, setPeriod] = useState(0);
   const [shown, setShown] = useState(0);
   const [step, setStep] = useState<Stage>(0);
@@ -565,6 +614,8 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
   const unassigned = Array.from({ length: snapshot.blocks }, (_, rank) => rank)
     .filter((rank) => !assignedRanks.has(rank)).map(clusterLabel).join(", ");
   const stage = step === 2 && !hasMacros ? 1 : step;
+  const canShowDiversity = view === "full" && stage === 1;
+  const mapDiversity = canShowDiversity && showDiversity;
   const nextStage = (stage === 1 && !hasMacros ? 3 : (stage + 1) % 4) as Stage;
   const nextLabel = stage === 1 && !hasMacros ? "dashboard.showBridges" : NEXT[stage];
   const node = selected === null ? null : snapshot.nodes[selected];
@@ -578,12 +629,15 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
   const profileRanks = new Set(profile?.blocks.map((block) => block.rank));
   const counts = useMemo(() => {
     const byCluster = Array<number>(snapshot.blocks).fill(0);
+    const clusterCategories = Array.from({ length: snapshot.blocks }, () => new Map<string, number>());
     const byCategory = new Map<string, number>();
     for (const [, category, rank] of snapshot.nodes) {
       byCluster[rank]++;
+      const categories = clusterCategories[rank];
+      categories.set(category, (categories.get(category) ?? 0) + 1);
       byCategory.set(category, (byCategory.get(category) ?? 0) + 1);
     }
-    return { byCluster, byCategory };
+    return { byCluster, byCategory, diversity: clusterCategories.map(categoryDiversity) };
   }, [snapshot]);
   const largestCluster = Math.max(...counts.byCluster);
   const visibleCategories = CATEGORY_ORDER.filter((category) => counts.byCategory.has(category));
@@ -687,8 +741,19 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
                 {t(nextLabel)}
               </button>
             </div>
+            {canShowDiversity && (
+              <div className="dashboard-diversity-tools">
+                <button type="button" aria-pressed={showDiversity} onClick={() => setShowDiversity(!showDiversity)}>
+                  {t("dashboard.showDiversity")}
+                </button>
+                {showDiversity && <span className="dashboard-diversity-scale">
+                  {t("dashboard.diversity")} <b>0</b><i aria-hidden="true" /><b>1</b>
+                </span>}
+              </div>
+            )}
             {stage > 0 && snapshot.nestedFit && <NestedFitDetails key={snapshot.label} fit={snapshot.nestedFit} />}
             <DashboardGraph snapshot={snapshot} stage={stage} grouped={hasMacros && stage >= 2} lang={lang} selected={selected} story={story} macroStory={macroStory}
+              diversity={mapDiversity ? counts.diversity : null} onCluster={selectCluster}
               selectedMacro={selectedMacro} selectedCluster={selectedCluster} onMacro={selectMacro} onSelect={selectNode} />
             {hasMacros && stage >= 2 && unassigned && <p className="dashboard-unassigned">{t("dashboard.unassigned", { cluster: unassigned })}</p>}
           </div>
@@ -786,6 +851,7 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
                   aria-label={t("common.close")}>×</button>
                 {parentMacro && <button className="dashboard-parent-macro" onClick={() => selectMacro(parentMacro.id)}>‹ {parentMacro.name[lang]}</button>}
                 <h3 className="dashboard-node-name">{clusterLabel(selectedCluster)} · {clusterProfile.title[lang]}</h3>
+                <ClusterDiversity key={snapshot.label + selectedCluster} metric={counts.diversity[selectedCluster]} />
                 <p className="dashboard-cluster-question">{t("dashboard.clusterThemeQuestion")}</p>
                 <p className="dashboard-cluster-answer">{clusterProfile.description[lang]}</p>
                 <h4 className="dashboard-cluster-terms-title">

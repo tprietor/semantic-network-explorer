@@ -1,0 +1,163 @@
+{
+  "deforestation": {
+    "focus": [
+      [
+        "gold mining"
+      ],
+      [
+        "mining",
+        "logging",
+        "conservation",
+        "restoration"
+      ],
+      [
+        "regional governments",
+        "smallholders",
+        "financial institutions"
+      ]
+    ],
+    "earlyTitle": {
+      "es": "La minería de oro concentra la atención",
+      "en": "Gold mining stands out"
+    },
+    "earlyReading": {
+      "es": "La minería de oro es la práctica con más oraciones compartidas con deforestation.",
+      "en": "Gold mining shares the most sentences with deforestation among the directly linked practices."
+    },
+    "middleTitle": {
+      "es": "La extracción persiste y aparecen respuestas",
+      "en": "Extraction persists as responses emerge"
+    },
+    "middleReading": {
+      "es": "La minería y la tala siguen a un paso. Conservación y restauración entran en el vecindario directo.",
+      "en": "Mining and logging remain one step away. Conservation and restoration enter the direct neighborhood."
+    },
+    "actorReading": {
+      "es": "Gobiernos regionales, pequeños productores e instituciones financieras aparecen junto a deforestation.",
+      "en": "Regional governments, smallholders and financial institutions appear alongside deforestation."
+    },
+    "routeTitle": {
+      "es": "Cadenas del bosque y adaptación",
+      "en": "Forest value chains and adaptation"
+    },
+    "routeReading": {
+      "es": "La cosecha de castaña pasa de dos pasos a un enlace directo.",
+      "en": "Brazil nut harvesting moves from two steps away to a direct link."
+    },
+    "target": "Brazil nut harvesting",
+    "targetCategory": "PRAC",
+    "follow": {
+      "es": "Seguir la cosecha de castaña",
+      "en": "Follow Brazil nut harvesting"
+    }
+  },
+  "conservation": {
+    "focus": [
+      [
+        "cacao agroforestry",
+        "shade trees",
+        "Shade management",
+        "chakra farming"
+      ],
+      [
+        "deforestation",
+        "mining",
+        "forest restoration",
+        "Indigenous Peoples"
+      ],
+      [
+        "IPLCs",
+        "smallholders",
+        "local communities"
+      ]
+    ],
+    "earlyTitle": {
+      "es": "Conservar desde la parcela",
+      "en": "Conservation on the farm"
+    },
+    "earlyReading": {
+      "es": "Los cuatro vecinos son cacao agroforestal, cultivo en chakras, manejo de sombra y árboles de sombra. Ningún actor tiene un enlace directo.",
+      "en": "The four neighbors are cacao agroforestry, chakra farming, shade management and shade trees. No actor has a direct link."
+    },
+    "middleTitle": {
+      "es": "De la parcela al paisaje",
+      "en": "From farm to landscape"
+    },
+    "middleReading": {
+      "es": "La minería, la deforestación y la restauración forestal entran en el vecindario directo. Aparecen ocho actores, entre ellos Indigenous Peoples.",
+      "en": "Mining, deforestation and forest restoration enter the direct neighborhood. Eight actors now have direct links, including Indigenous Peoples."
+    },
+    "actorReading": {
+      "es": "IPLCs aparece en 14 oraciones de un documento. Los pequeños productores aparecen en seis oraciones repartidas entre tres documentos.",
+      "en": "IPLCs appears in 14 sentences from one document. Smallholders appear in six sentences across three documents."
+    },
+    "routeTitle": {
+      "es": "La dimensión territorial",
+      "en": "The territorial dimension"
+    },
+    "routeReading": {
+      "es": "Los derechos territoriales pasan de dos pasos a un enlace directo con la conservación.",
+      "en": "Territorial rights move from two steps away to a direct link with conservation."
+    },
+    "target": "territorial rights",
+    "targetCategory": "RUL",
+    "follow": {
+      "es": "Seguir los derechos territoriales",
+      "en": "Follow territorial rights"
+    }
+  },
+  "monoculture": {
+    "focus": [
+      [
+        "CAMTA",
+        "agroforestry model",
+        "Intercropping"
+      ],
+      [
+        "large-scale agriculture",
+        "traditional food systems",
+        "families",
+        "research centers"
+      ],
+      [
+        "producers",
+        "IPLCs",
+        "local communities"
+      ]
+    ],
+    "earlyTitle": {
+      "es": "La diversificación de las fincas de CAMTA",
+      "en": "Diversification on CAMTA farms"
+    },
+    "earlyReading": {
+      "es": "Un documento describe cómo agricultores de CAMTA pasaron del monocultivo de pimienta a un modelo agroforestal diversificado.",
+      "en": "One document describes how CAMTA farmers moved from pepper monoculture to a diversified agroforestry model."
+    },
+    "middleTitle": {
+      "es": "Producción a gran escala y alimentación",
+      "en": "Large-scale production and food"
+    },
+    "middleReading": {
+      "es": "Agricultura a gran escala y sistemas alimentarios tradicionales aparecen junto a monoculture. Los actores directos pasan de dos a diez.",
+      "en": "Large-scale agriculture and traditional food systems now appear alongside monoculture. Directly linked actors rise from two to ten."
+    },
+    "actorReading": {
+      "es": "Universities conserva su enlace. Entre los siete actores figuran productores, IPLCs y comunidades locales. Las prácticas directas pasan de 18 a 35.",
+      "en": "Universities retains its link. The seven actors include producers, IPLCs and local communities. Directly linked practices rise from 18 to 35."
+    },
+    "routeTitle": {
+      "es": "Las comunidades locales entran en primer plano",
+      "en": "Local communities come into direct view"
+    },
+    "routeReading": {
+      "es": "Un pasaje vincula los bosques de monocultivo con servicios ecosistémicos importantes para las comunidades locales.",
+      "en": "One passage links monoculture forests to ecosystem services that matter to local communities."
+    },
+    "target": "local communities",
+    "targetCategory": "CHAR",
+    "follow": {
+      "es": "Seguir a las comunidades locales",
+      "en": "Follow local communities"
+    }
+  }
+}
