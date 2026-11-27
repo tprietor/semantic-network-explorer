@@ -761,3 +761,69 @@
   margin: 3px 0;
   line-height: 1.4;
 }
+
+.dashboard-macro-reading,
+.dashboard-reading-index {
+  display: grid;
+  gap: .65rem;
+  color: var(--tx);
+}
+.dashboard-node-card.dashboard-macro-reading { padding: .9rem; }
+.dashboard-macro-reading h3, .dashboard-reading-index h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.dashboard-macro-reading h3 { padding-inline-end: 1rem; text-wrap: balance; }
+.dashboard-macro-reading small { color: var(--tx2); font-size: 12px; }
+.dashboard-macro-reading p, .dashboard-reading-index p {
+  margin: 0;
+  line-height: 1.55;
+}
+.dashboard-macro-reading details {
+  border-top: 1px solid var(--line);
+  padding-top: .6rem;
+}
+.dashboard-macro-reading summary { cursor: pointer; font-weight: 650; }
+.dashboard-macro-reading details p { margin-top: .45rem; color: var(--tx2); }
+.dashboard-macro-reading cite { display: block; color: var(--tx); }
+.dashboard-macro-reading h4 { margin: .2rem 0 0; font-size: 13px; }
+.dashboard-reading-blocks { display: grid; gap: 4px; }
+.dashboard-reading-blocks button, .dashboard-reading-index button {
+  display: flex;
+  align-items: baseline;
+  gap: .55rem;
+  min-height: 34px;
+  padding: .4rem .5rem;
+  color: var(--tx);
+  background: var(--surf);
+  border: 1px solid var(--line2);
+  border-radius: 7px;
+  line-height: 1.35;
+  text-align: start;
+}
+.dashboard-reading-index i { flex: 0 0 9px; height: 9px; border-radius: 50%; }
+.dashboard-reading-index button b { margin-inline-start: auto; }
+.dashboard-reading-blocks b, .dashboard-parent-macro { color: var(--acc); }
+.dashboard-reading-blocks button:hover, .dashboard-reading-index button:hover { border-color: var(--acc); }
+.dashboard-parent-macro {
+  width: fit-content;
+  margin-inline-end: 1.3rem;
+  padding: .2rem 0;
+  text-align: start;
+  border: 0;
+  background: transparent;
+}
+.dashboard-reading-source { margin-top: .75rem; }
+.dashboard-reading-source blockquote {
+  margin: .3rem 0;
+  padding-inline-start: .55rem;
+  border-inline-start: 2px solid var(--line2);
+  color: var(--tx);
+  font-size: 13px;
+  line-height: 1.45;
+}
+@media (min-width: 1024px) {
+  .dashboard-inspector:has(.dashboard-macro-reading) > *,
+  .dashboard-inspector:has(.dashboard-reading-index) > * { flex-shrink: 0; }
+}

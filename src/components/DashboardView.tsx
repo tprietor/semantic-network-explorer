@@ -170,6 +170,20 @@ function lateMacroBoxes(width: number, height: number, narrow: boolean): PlotBox
   ];
 }
 
+function readingBoxes(width: number, narrow: boolean): PlotBox[] {
+  const inset = 13, gap = 16, span = width - 2 * inset;
+  const half = (span - gap) / 2;
+  const stack = narrow ? [236, 192, 252, 192, 206] : [224, 224, 208, 194, 194];
+  let top = inset;
+  return stack.map((height, index) => {
+    const full = narrow || index === 2;
+    const right = !full && (index === 1 || index === 4);
+    const box = { x: right ? inset + half + gap : inset, y: top, width: full ? span : half, height };
+    if (full || right) top += height + gap;
+    return box;
+  });
+}
+
 function macroLayout(snapshot: Snapshot, width: number): Pick<Layout, "positions" | "regions" | "height"> {
   const narrow = width < 570;
   const horizontalGap = 18;
@@ -179,7 +193,8 @@ function macroLayout(snapshot: Snapshot, width: number): Pick<Layout, "positions
   const late = snapshot.label === CORE_PERIOD;
   const middle = snapshot.label === MIDDLE_PERIOD;
   const remainderHeight = middle ? (narrow ? 205 : 168) : 76;
-  const height = late ? (narrow ? 1888 : 1110) :
+  const readingLayout = !late && !middle ? readingBoxes(width, narrow) : undefined;
+  const height = readingLayout ? Math.max(...readingLayout.map((box) => box.y + box.height)) + inset : late ? (narrow ? 1888 : 1110) :
     (narrow ? 1140 : 742) + remainderHeight - 76;
   const rowTop = 15;
   const firstRowHeight = narrow ? 252 : 340;
@@ -195,7 +210,7 @@ function macroLayout(snapshot: Snapshot, width: number): Pick<Layout, "positions
 
   const lateBoxes = late ? lateMacroBoxes(width, height, narrow) : undefined;
   const regions: MacroRegion[] = macroClusters(snapshot.label).map((macro, i) => {
-    const box = lateBoxes?.[i] ?? {
+    const box = readingLayout?.[i] ?? lateBoxes?.[i] ?? {
       x: narrow || i % 2 === 0 ? inset : inset + widths[i - 1] + horizontalGap,
       y: rows[i], width: widths[i], height: i < 2 ? firstRowHeight : secondRowHeight,
     };
@@ -234,7 +249,7 @@ function macroLayout(snapshot: Snapshot, width: number): Pick<Layout, "positions
     } else if (!region.macro) {
       place(region, region.ranks, 22, 16, region.ranks.size === 1 ? 150 : undefined);
     } else {
-      place(region, region.ranks, narrow ? 30 : 38, 86);
+      place(region, region.ranks, narrow ? 30 : 38, readingLayout ? 56 : 86);
     }
   }
   return { positions, regions, height };
@@ -260,7 +275,7 @@ function makeLayout(snapshot: Snapshot, clustered: boolean, width: number, group
     const left = Math.min(...xs), right = Math.max(...xs), top = Math.min(...ys), bottom = Math.max(...ys);
     const region = macro?.regions.find((item) => item.ranks.has(i));
     const box = region;
-    const captionHeight = region?.macro ? 62 : 0;
+    const captionHeight = region?.macro?.reading ? 42 : region?.macro ? 62 : 0;
     const labelBounds = box ? {
       x: box.x + 4, y: box.y + captionHeight,
       width: box.width - 8, height: box.height - captionHeight - 4,
@@ -558,6 +573,8 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
   const macroStory = macroMetric?.stories.find((item) => item.node === selected);
   const score = selected === null ? 0 : (macroMetric?.scores[selected] ?? node?.[3] ?? 0);
   const profile = hasMacros && stage >= 2 ? macros.find((macro) => macro.id === selectedMacro) : undefined;
+  const parentMacro = selectedCluster !== null && stage >= 2
+    ? macros.find((macro) => macro.reading && macro.blocks.some((block) => block.rank === selectedCluster)) : undefined;
   const profileRanks = new Set(profile?.blocks.map((block) => block.rank));
   const counts = useMemo(() => {
     const byCluster = Array<number>(snapshot.blocks).fill(0);
@@ -700,7 +717,37 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
             </section>
           )}
           <div className="dashboard-detail" aria-live="polite">
-            {profile ? (
+            {profile?.reading ? (
+              <article key={profile.id} className="dashboard-macro-reading dashboard-node-card" style={{ borderInlineStartColor: profile.color }}>
+                <button type="button" className="dashboard-story-close" onClick={() => setSelectedMacro(null)} aria-label={t("common.close")}>×</button>
+                <small>{t("dashboard.macroTotal", { blocks: profile.blocks.length,
+                  nodes: formatInt([...profileRanks].reduce((sum, rank) => sum + counts.byCluster[rank], 0), lang) })}</small>
+                <h3>{profile.name[lang]}</h3>
+                {profile.description?.[lang].map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                <details open>
+                  <summary>{t("dashboard.macroNetworkEvidence")}</summary>
+                  <p>{profile.reading.network[lang]}</p>
+                </details>
+                <details>
+                  <summary>{t("dashboard.macroCorpusEvidence")}</summary>
+                  {profile.reading.sources.map((source) => (
+                    <div className="dashboard-reading-source" key={source.title}>
+                      <cite>{source.title}</cite>
+                      <blockquote lang="en">{source.excerpt}</blockquote>
+                      <p>{source.passage[lang]}</p>
+                    </div>
+                  ))}
+                </details>
+                <h4>{t("dashboard.exploreMacroBlocks")}</h4>
+                <div className="dashboard-reading-blocks">
+                  {profile.blocks.map((block) => (
+                    <button key={block.rank} onClick={() => selectCluster(block.rank)}>
+                      <b>{clusterLabel(block.rank)}</b><span>{block.name[lang]}</span>
+                    </button>
+                  ))}
+                </div>
+              </article>
+            ) : profile ? (
               <div className="dashboard-story-note dashboard-macro-profile" style={{ borderColor: profile.color }}>
                 <button type="button" className="dashboard-story-close" onClick={() => setSelectedMacro(null)}
                   aria-label={t("common.close")}>×</button>
@@ -737,6 +784,7 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
               <div className="dashboard-node-card dashboard-cluster-profile">
                 <button type="button" className="dashboard-story-close" onClick={() => selectCluster(selectedCluster)}
                   aria-label={t("common.close")}>×</button>
+                {parentMacro && <button className="dashboard-parent-macro" onClick={() => selectMacro(parentMacro.id)}>‹ {parentMacro.name[lang]}</button>}
                 <h3 className="dashboard-node-name">{clusterLabel(selectedCluster)} · {clusterProfile.title[lang]}</h3>
                 <p className="dashboard-cluster-question">{t("dashboard.clusterThemeQuestion")}</p>
                 <p className="dashboard-cluster-answer">{clusterProfile.description[lang]}</p>
@@ -761,6 +809,16 @@ function DashboardStory({ snapshots, view }: { snapshots: Snapshot[]; view: Dash
               <><strong>{clusterLabel(selectedCluster)}</strong><span>{t("dashboard.nodeTotal", {
                 n: formatInt(counts.byCluster[selectedCluster], lang),
               })}</span></>
+            ) : stage === 2 && macros.some((macro) => macro.reading) ? (
+              <section className="dashboard-reading-index">
+                <h3>{t("dashboard.macroReadings")}</h3>
+                <p>{t("dashboard.macroReadingIntro")}</p>
+                {macros.map((macro) => (
+                  <button key={macro.id} onClick={() => selectMacro(macro.id)}>
+                    <i aria-hidden="true" style={{ background: macro.color }} /><span>{macro.name[lang]}</span><b aria-hidden="true">›</b>
+                  </button>
+                ))}
+              </section>
             ) : (
               <div className="dashboard-node-placeholder">
                 <strong>{t("dashboard.nodeDetails")}</strong>
