@@ -17,7 +17,7 @@
 }
 .dashboard-ego-heading h3 {
   margin: 0;
-  font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+  font-size: 15px;
 }
 .dashboard-ego-heading span { color: var(--tx2); }
 .dashboard-ego-timeline { margin: 4px 12px 13px; }

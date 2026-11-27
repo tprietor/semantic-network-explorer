@@ -19,7 +19,7 @@
   border-radius: 8px;
   color: var(--tx2);
   background: transparent;
-  font-size: 1rem;
+  font-size: 13px;
   font-weight: 650;
 }
 .dashboard-view-picker button:hover {
@@ -73,7 +73,7 @@
 }
 .dashboard-full-menu-options small {
   color: var(--tx2);
-  font-size: .83rem;
+  font-size: 12px;
   font-weight: 450;
 }
 @media (max-width: 640px) {
@@ -95,7 +95,6 @@
   .dashboard-view-picker button {
     min-width: 0;
     padding-inline: .4rem;
-    font-size: .9rem;
     line-height: 1.18;
   }
 }
@@ -122,14 +121,14 @@
 }
 .dashboard-header h2 {
   margin: 0;
-  font-size: clamp(1.55rem, 3.2vw, 2.1rem);
+  font-size: 20px;
 }
 .dashboard-action {
   border: 1px solid var(--line2);
   border-radius: 10px;
   padding: .55rem .75rem;
   white-space: nowrap;
-  font-size: 1rem;
+  font-size: 13px;
   font-weight: 650;
 }
 .dashboard-action {
@@ -160,7 +159,7 @@
   color: var(--tx2);
   background: transparent;
   white-space: nowrap;
-  font-size: clamp(.92rem, 2.8vw, 1.08rem);
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 .dashboard-timeline button::before {
@@ -187,7 +186,7 @@
   flex-wrap: wrap;
   gap: 8px 15px;
   margin-block: 14px;
-  font-size: .95rem;
+  font-size: 12px;
   color: var(--tx2);
 }
 .dashboard-ego-section .dashboard-legend span {
@@ -264,7 +263,7 @@
 .dashboard-finding h3 {
   margin: 0;
   color: var(--tx);
-  font-size: 1.12rem;
+  font-size: 15px;
 }
 .dashboard-finding p {
   margin: .55rem 0 0;
@@ -296,11 +295,11 @@
 }
 .dashboard-counts h3 {
   margin: 0;
-  font-size: 1.21rem;
+  font-size: 15px;
 }
 .dashboard-counts header span {
   color: var(--tx2);
-  font-size: .95rem;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 .dashboard-category-counts,
@@ -381,7 +380,7 @@
 }
 .dashboard-cluster-summary span:last-child {
   color: var(--tx2);
-  font-size: .95rem;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   font-weight: 400;
 }
@@ -405,7 +404,7 @@
   gap: .45rem;
   align-items: baseline;
   color: var(--tx2);
-  font-size: .95rem;
+  font-size: 12px;
 }
 .dashboard-bridge-key i {
   flex: 0 0 9px;
@@ -465,7 +464,7 @@
 .dashboard-cluster-terms-title {
   margin: .3rem 0 0;
   color: var(--tx);
-  font-size: .98rem;
+  font-size: 13px;
 }
 .dashboard-cluster-terms {
   display: flex;
@@ -479,16 +478,16 @@
   padding: .22rem .43rem;
   border: 1px solid;
   border-radius: 6px;
-  font-size: .91rem;
+  font-size: 12.5px;
   color: var(--tx);
 }
 .dashboard-node-eyebrow {
   color: var(--tx2);
-  font-size: .88rem;
+  font-size: 12px;
   font-weight: 650;
 }
 .dashboard-node-name {
-  font-size: 1.3rem;
+  font-size: 15px;
   line-height: 1.24;
 }
 .dashboard-node-meta {
@@ -504,7 +503,7 @@
   border-radius: 5px;
   background: var(--surf2);
   color: var(--tx);
-  font-size: .94rem;
+  font-size: 12.5px;
 }
 .dashboard-node-meta i {
   flex: 0 0 9px;
@@ -547,7 +546,7 @@
   }
 }
 .dashboard-status {
-  font-size: 1rem;
+  font-size: 12.5px;
   color: var(--tx2);
 }
 .dashboard-status strong,
@@ -560,7 +559,7 @@
   border: 1px solid var(--line);
   border-radius: 9px;
   color: var(--tx2);
-  font-size: .96rem;
+  font-size: 13px;
   line-height: 1.45;
 }
 .dashboard-nested-fit summary {
@@ -595,7 +594,7 @@
   white-space: nowrap;
   pointer-events: none;
   font-weight: 650;
-  font-size: clamp(1rem, 1.55vw, 1.26rem);
+  font-size: 13px;
   line-height: 1.18;
   animation: dashboard-reveal 280ms 240ms both;
 }
@@ -625,7 +624,7 @@
   padding-top: 10px;
   min-height: 35px;
   color: var(--tx2);
-  font-size: 1rem;
+  font-size: 13px;
   line-height: 1.45;
 }
 @keyframes dashboard-rotate {
@@ -647,7 +646,7 @@
   gap: 7px 10px;
   margin: 0 0 12px;
   color: var(--tx2);
-  font-size: .95rem;
+  font-size: 12px;
 }
 .dashboard-stories button {
   border-radius: 8px;
@@ -697,7 +696,7 @@
   background: color-mix(in oklab, var(--graph), transparent 15%);
   border: 1px solid transparent;
   border-radius: 8px;
-  font-size: clamp(.96rem, 1.32vw, 1.13rem);
+  font-size: 13px;
   font-weight: 650;
   line-height: 1.2;
   animation: dashboard-reveal 260ms 245ms both;
@@ -719,7 +718,7 @@
   margin: 0 12px 12px;
   text-align: center;
   color: var(--tx2);
-  font-size: .95rem;
+  font-size: 12px;
 }
 .dashboard-macro-profile {
   max-height: min(49dvh, 400px);
@@ -755,7 +754,7 @@
   transform: translateX(-50%);
   color: var(--tx);
   text-align: center;
-  font-size: .94rem;
+  font-size: 12.5px;
   justify-content: center;
 }
 .dashboard-profile-description {
